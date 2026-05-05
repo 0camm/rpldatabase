@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPL Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e8001d;
+    --red-dim: rgba(232,0,29,.1);
+    --bg: #060608;
+    --surface: #0d0d10;
+    --surface2: #111115;
+    --border: rgba(255,255,255,.06);
+    --muted: #555;
+    --text: #e8e8ee;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 58px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(6,6,8,.9);
+    backdrop-filter: blur(20px);
+  }
+
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo img { width: 28px; height: 28px; object-fit: contain; }
+  .nav-logo span { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .06em; color: #fff; }
+  .nav-logo span em { color: var(--red); font-style: normal; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 52px 40px 0;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+  }
+
+  .page-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--red);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .page-eyebrow::before { content:''; width:18px; height:2px; background:var(--red); border-radius:2px; }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px,5vw,60px);
+    letter-spacing: .03em; line-height: 1; color: #fff;
+  }
+
+  .page-meta { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; width: 280px; flex-shrink: 0; }
+
+  .search-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px 10px 40px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; outline: none; transition: border-color .2s;
+  }
+
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: rgba(232,0,29,.4); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 2px;
+    padding: 24px 40px 0;
+    border-bottom: 1px solid var(--border);
+    margin-top: 32px;
+  }
+
+  .tab {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 10px 20px; margin-bottom: -1px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; letter-spacing: .04em;
+    transition: color .2s, border-color .2s;
+  }
+
+  .tab:hover { color: #fff; }
+  .tab.active { color: #fff; border-bottom-color: var(--red); }
+
+  /* ── MAIN ── */
+  main { padding: 36px 40px 80px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── STAT CATEGORY HEADER ── */
+  .stat-category {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .stat-category::before { content:''; width:18px; height:2px; background:var(--red); border-radius:2px; }
+
+  /* ── LEADERBOARD GRID ── */
+  .lb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  /* ── LEADERBOARD TABLE ── */
+  .lb-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .lb-table-header {
+    background: rgba(232,0,29,.08);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .lb-table-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: .06em; color: #fff;
+  }
+
+  .lb-table-stat {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--red);
+  }
+
+  .lb-col-headers {
+    display: grid;
+    grid-template-columns: 28px 1fr 52px 64px 80px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lb-col-headers span {
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .lb-col-headers span:not(:first-child) { text-align: center; }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 52px 64px 80px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    align-items: center;
+    transition: background .15s;
+  }
+
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: rgba(255,255,255,.03); }
+
+  .lb-row.highlight { background: rgba(232,0,29,.06); }
+  .lb-row.highlight:hover { background: rgba(232,0,29,.1); }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: .04em;
+    color: var(--muted);
+  }
+
+  .lb-rank.gold { color: #f59e0b; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #b45309; }
+
+  .lb-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .lb-name.search-match { color: var(--red); }
+
+  .lb-gp, .lb-val, .lb-team {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .lb-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; letter-spacing: .04em; }
+
+  .lb-row.highlight .lb-val { color: var(--red); }
+
+  /* ── TEAM STATS ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .team-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .team-table-header {
+    background: rgba(232,0,29,.08);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .team-table-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: .06em; color: #fff;
+  }
+
+  .team-col-headers {
+    display: grid;
+    grid-template-columns: 28px 36px 1fr 80px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .team-col-headers span {
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .team-col-headers span:last-child { text-align: right; }
+
+  .team-row {
+    display: grid;
+    grid-template-columns: 28px 36px 1fr 80px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    align-items: center;
+    transition: background .15s;
+  }
+
+  .team-row:last-child { border-bottom: none; }
+  .team-row:hover { background: rgba(255,255,255,.03); }
+  .team-row.highlight { background: rgba(232,0,29,.06); }
+
+  .team-rank {
+    font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+    color: var(--muted);
+  }
+
+  .team-logo-cell img {
+    width: 24px; height: 24px; object-fit: contain;
+  }
+
+  .team-name-cell { font-size: 13px; font-weight: 500; color: #ccc; }
+
+  .team-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: .04em;
+    color: #fff; text-align: right;
+  }
+
+  .team-row.highlight .team-val { color: var(--red); }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <div class="page-eyebrow">Season 10</div>
+    <div class="page-title">Database</div>
+    <div class="page-meta">League Leaders &amp; Team Statistics</div>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="6" cy="6" r="4.5" stroke="#555" stroke-width="1.3"/>
+      <path d="M9.5 9.5L12.5 12.5" stroke="#555" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <input class="search-input" id="search" placeholder="Search player or team…" autocomplete="off">
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="leaders">League Leaders</button>
+  <button class="tab" data-tab="teams">Team Statistics</button>
+</div>
+
+<main>
+
+  <!-- ════════════════════════════════
+       LEAGUE LEADERS VIEW
+  ════════════════════════════════ -->
+  <div class="view active" id="view-leaders">
+    <div class="lb-grid" id="lb-grid"></div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TEAM STATS VIEW
+  ════════════════════════════════ -->
+  <div class="view" id="view-teams">
+    <div class="team-grid" id="team-grid"></div>
+  </div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ██████╗  █████╗ ████████╗ █████╗
+   ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
+   ██║  ██║███████║   ██║   ███████║
+   ██║  ██║██╔══██║   ██║   ██╔══██║
+   ██████╔╝██║  ██║   ██║   ██║  ██║
+   ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+
+   HOW TO UPDATE STATS:
+   1. Find the section you want (e.g. "PPG Leaders")
+   2. Edit the players array — each entry is:
+      { name: "username", gp: games_played, val: stat_value, team: "Team Name" }
+   3. Save the file. Done.
+
+   HOW TO UPDATE TEAM STATS:
+   Find the teamStats object near the bottom.
+   Each team has: ppg, papg, apg, spg, rpg, topg, pd, fgPct, fgm, fga
+   Set them to numbers. If a team hasn't played set to null (shows "—")
+═══════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────
+   LEAGUE LEADERS DATA
+   Edit these arrays to update the stats
+───────────────────────────────────── */
+const leaderboards = [
+  {
+    title: "Points Per Game",
+    stat: "PPG",
+    players: [
+      { name: "popthem10s",       gp: 6,  val: 46.0, team: "" },
+      { name: "kasotheboss101",   gp: 6,  val: 40.3, team: "" },
+      { name: "angentDrake",      gp: 7,  val: 39.1, team: "" },
+      { name: "loqqrs",           gp: 7,  val: 38.6, team: "" },
+      { name: "TomPooleryFan",    gp: 8,  val: 38.0, team: "" },
+      { name: "SeveralReminders", gp: 5,  val: 37.6, team: "" },
+      { name: "omxrzen",          gp: 9,  val: 33.9, team: "" },
+      { name: "K20MyHo",          gp: 5,  val: 32.8, team: "" },
+      { name: "BenJokic",         gp: 5,  val: 30.4, team: "" },
+      { name: "o6il",             gp: 7,  val: 29.3, team: "" },
+    ]
+  },
+  {
+    title: "Assists Per Game",
+    stat: "APG",
+    players: [
+      { name: "k_ai6",             gp: 8, val: 20.8, team: "" },
+      { name: "SeveralReminders",  gp: 5, val: 15.2, team: "" },
+      { name: "SirPartum",         gp: 6, val: 15.0, team: "" },
+      { name: "GloriusDayDay_ALT", gp: 8, val: 14.3, team: "" },
+      { name: "vAcevx",            gp: 5, val: 12.6, team: "" },
+      { name: "Ch_ef7s",           gp: 6, val: 12.3, team: "" },
+      { name: "loqqrs",            gp: 7, val: 11.9, team: "" },
+      { name: "piercebot712",      gp: 8, val: 11.8, team: "" },
+      { name: "o6il",              gp: 7, val: 10.7, team: "" },
+      { name: "rcmington",         gp: 5, val: 10.2, team: "" },
+    ]
+  },
+  {
+    title: "Steals Per Game",
+    stat: "SPG",
+    players: [
+      { name: "popthem10s",        gp: 6,  val: 6.7, team: "" },
+      { name: "GloriusDayDay_ALT", gp: 8,  val: 6.3, team: "" },
+      { name: "BenJokic",          gp: 5,  val: 6.0, team: "" },
+      { name: "chipsahoy_224",     gp: 12, val: 5.8, team: "" },
+      { name: "Ch_ef7s",           gp: 6,  val: 5.7, team: "" },
+      { name: "SirPartum",         gp: 6,  val: 5.3, team: "" },
+      { name: "piercebot712",      gp: 8,  val: 5.3, team: "" },
+      { name: "1TickingBomb",      gp: 5,  val: 5.0, team: "" },
+      { name: "K20MyHo",           gp: 5,  val: 4.8, team: "" },
+      { name: "loqqrs",            gp: 7,  val: 4.6, team: "" },
+    ]
+  },
+  {
+    title: "Rebounds Per Game",
+    stat: "RPG",
+    players: [
+      { name: "k_ai6",             gp: 8, val: 16.9, team: "" },
+      { name: "SirPartum",         gp: 6, val: 13.8, team: "" },
+      { name: "vAcevx",            gp: 5, val: 9.8,  team: "" },
+      { name: "SeveralReminders",  gp: 5, val: 7.2,  team: "" },
+      { name: "rcmington",         gp: 5, val: 6.0,  team: "" },
+      { name: "Ch_ef7s",           gp: 6, val: 6.0,  team: "" },
+      { name: "piercebot712",      gp: 8, val: 5.9,  team: "" },
+      { name: "o6il",              gp: 7, val: 5.7,  team: "" },
+      { name: "1TickingBomb",      gp: 5, val: 5.6,  team: "" },
+      { name: "GloriusDayDay_ALT", gp: 8, val: 4.9,  team: "" },
+    ]
+  },
+  {
+    title: "Turnovers Per Game",
+    stat: "TOPG",
+    players: [
+      { name: "GloriusDayDay_ALT", gp: 8, val: 11.9, team: "" },
+      { name: "SeveralReminders",  gp: 5, val: 10.0, team: "" },
+      { name: "Ch_ef7s",           gp: 6, val: 9.8,  team: "" },
+      { name: "chipsahoy_224",     gp: 12,val: 9.6,  team: "" },
+      { name: "SirPartum",         gp: 6, val: 9.5,  team: "" },
+      { name: "k_ai6",             gp: 8, val: 9.4,  team: "" },
+      { name: "kasotheboss101",    gp: 6, val: 9.3,  team: "" },
+      { name: "1TickingBomb",      gp: 5, val: 9.2,  team: "" },
+      { name: "omxrzen",           gp: 9, val: 9.1,  team: "" },
+      { name: "o6il",              gp: 7, val: 8.6,  team: "" },
+    ]
+  },
+  {
+    title: "Player Efficiency Rating",
+    stat: "PER",
+    players: [
+      { name: "popthem10s",       gp: 6, val: 24.8, team: "" },
+      { name: "loqqrs",           gp: 7, val: 24.8, team: "" },
+      { name: "SeveralReminders", gp: 5, val: 22.5, team: "" },
+      { name: "angentDrake",      gp: 7, val: 21.2, team: "" },
+      { name: "TomPooleryFan",    gp: 8, val: 20.6, team: "" },
+      { name: "kasotheboss101",   gp: 6, val: 19.7, team: "" },
+      { name: "BenJokic",         gp: 5, val: 18.4, team: "" },
+      { name: "K20MyHo",          gp: 5, val: 18.3, team: "" },
+      { name: "rcmington",        gp: 5, val: 16.7, team: "" },
+      { name: "o6il",             gp: 7, val: 16.3, team: "" },
+    ]
+  },
+];
+
+/* ─────────────────────────────────────
+   TEAM LOGOS
+───────────────────────────────────── */
+const logos = {
+  "Atlanta Hawks":          "https://loodibee.com/wp-content/uploads/nba-atlanta-hawks-logo.png",
+  "Boston Celtics":         "https://loodibee.com/wp-content/uploads/nba-boston-celtics-logo.png",
+  "Brooklyn Nets":          "https://loodibee.com/wp-content/uploads/nba-brooklyn-nets-logo.png",
+  "Charlotte Hornets":      "https://loodibee.com/wp-content/uploads/nba-charlotte-hornets-logo.png",
+  "Chicago Bulls":          "https://loodibee.com/wp-content/uploads/nba-chicago-bulls-logo.png",
+  "Cleveland Cavaliers":    "https://loodibee.com/wp-content/uploads/nba-cleveland-cavaliers-logo.png",
+  "Dallas Mavericks":       "https://loodibee.com/wp-content/uploads/nba-dallas-mavericks-logo.png",
+  "Denver Nuggets":         "https://upload.wikimedia.org/wikipedia/en/thumb/7/76/Denver_Nuggets.svg/500px-Denver_Nuggets.svg.png",
+  "Detroit Pistons":        "https://loodibee.com/wp-content/uploads/nba-detroit-pistons-logo.png",
+  "Golden State Warriors":  "https://loodibee.com/wp-content/uploads/nba-golden-state-warriors-logo.png",
+  "Houston Rockets":        "https://loodibee.com/wp-content/uploads/nba-houston-rockets-logo.png",
+  "Indiana Pacers":         "https://loodibee.com/wp-content/uploads/nba-indiana-pacers-logo.png",
+  "LA Clippers":            "https://loodibee.com/wp-content/uploads/nba-la-clippers-logo.png",
+  "Los Angeles Lakers":     "https://loodibee.com/wp-content/uploads/nba-los-angeles-lakers-logo.png",
+  "Memphis Grizzlies":      "https://loodibee.com/wp-content/uploads/nba-memphis-grizzlies-logo.png",
+  "Miami Heat":             "https://loodibee.com/wp-content/uploads/nba-miami-heat-logo.png",
+  "Milwaukee Bucks":        "https://loodibee.com/wp-content/uploads/nba-milwaukee-bucks-logo.png",
+  "Minnesota Timberwolves": "https://loodibee.com/wp-content/uploads/nba-minnesota-timberwolves-logo.png",
+  "New Orleans Pelicans":   "https://loodibee.com/wp-content/uploads/nba-new-orleans-pelicans-logo.png",
+  "New York Knicks":        "https://loodibee.com/wp-content/uploads/nba-new-york-knicks-logo.png",
+  "Oklahoma City Thunder":  "https://loodibee.com/wp-content/uploads/nba-oklahoma-city-thunder-logo.png",
+  "Orlando Magic":          "https://loodibee.com/wp-content/uploads/nba-orlando-magic-logo.png",
+  "Philadelphia 76ers":     "https://loodibee.com/wp-content/uploads/nba-philadelphia-76ers-logo.png",
+  "Phoenix Suns":           "https://loodibee.com/wp-content/uploads/nba-phoenix-suns-logo.png",
+  "Portland Trail Blazers": "https://loodibee.com/wp-content/uploads/nba-portland-trail-blazers-logo.png",
+  "Sacramento Kings":       "https://loodibee.com/wp-content/uploads/nba-sacramento-kings-logo.png",
+  "San Antonio Spurs":      "https://loodibee.com/wp-content/uploads/nba-san-antonio-spurs-logo.png",
+  "Toronto Raptors":        "https://loodibee.com/wp-content/uploads/nba-toronto-raptors-logo.png",
+  "Utah Jazz":              "https://loodibee.com/wp-content/uploads/nba-utah-jazz-logo.png",
+  "Washington Wizards":     "https://loodibee.com/wp-content/uploads/nba-washington-wizards-logo.png",
+};
+
+/* ─────────────────────────────────────────────────────
+   TEAM STATISTICS DATA
+   Set each stat to a number, or null if not yet played.
+
+   STATS KEY:
+   ppg   = Points Per Game
+   papg  = Points Allowed Per Game
+   apg   = Assists Per Game
+   spg   = Steals Per Game
+   rpg   = Rebounds Per Game
+   topg  = Turnovers Per Game
+   pd    = Point Differential
+   fgPct = Field Goal % (e.g. 0.482 = 48.2%)
+   fgm   = Total Field Goals Made
+   fga   = Total Field Goals Attempted
+───────────────────────────────────────────────────── */
+const teamStats = {
+  "Atlanta Hawks":          { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Boston Celtics":         { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Brooklyn Nets":          { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Charlotte Hornets":      { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Chicago Bulls":          { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Cleveland Cavaliers":    { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Dallas Mavericks":       { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Denver Nuggets":         { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Detroit Pistons":        { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Golden State Warriors":  { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Houston Rockets":        { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Indiana Pacers":         { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "LA Clippers":            { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Los Angeles Lakers":     { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Memphis Grizzlies":      { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Miami Heat":             { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Milwaukee Bucks":        { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Minnesota Timberwolves": { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "New Orleans Pelicans":   { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "New York Knicks":        { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Oklahoma City Thunder":  { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Orlando Magic":          { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Philadelphia 76ers":     { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Phoenix Suns":           { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Portland Trail Blazers": { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Sacramento Kings":       { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "San Antonio Spurs":      { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Toronto Raptors":        { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Utah Jazz":              { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+  "Washington Wizards":     { ppg: null, papg: null, apg: null, spg: null, rpg: null, topg: null, pd: null, fgPct: null, fgm: 0, fga: 0 },
+};
+
+/* ═══════════════════════════════════════
+   RENDER ENGINE — don't need to edit below
+═══════════════════════════════════════ */
+
+const rankColors = ['gold','silver','bronze','','','','','','',''];
+
+function fmt(val, stat) {
+  if (val === null || val === undefined) return '—';
+  if (stat === 'fgPct') return (val * 100).toFixed(1) + '%';
+  if (stat === 'pd') return (val > 0 ? '+' : '') + val.toFixed(1);
+  if (typeof val === 'number') return val % 1 === 0 ? val.toString() : val.toFixed(1);
+  return val;
+}
+
+let searchQuery = '';
+
+function buildLeaderboards() {
+  const grid = document.getElementById('lb-grid');
+  const q = searchQuery.toLowerCase();
+
+  grid.innerHTML = leaderboards.map(lb => {
+    const rows = lb.players.map((p, i) => {
+      const match = q && p.name.toLowerCase().includes(q);
+      return `
+        <div class="lb-row ${i === 0 ? 'highlight' : ''} ${match ? 'search-match-row' : ''}">
+          <span class="lb-rank ${rankColors[i]}">${i + 1}</span>
+          <span class="lb-name ${match ? 'search-match' : ''}">${p.name}</span>
+          <span class="lb-gp">${p.gp}</span>
+          <span class="lb-val">${fmt(p.val)}</span>
+          <span class="lb-team">${p.team || '—'}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="lb-table">
+        <div class="lb-table-header">
+          <span class="lb-table-title">${lb.title}</span>
+          <span class="lb-table-stat">${lb.stat}</span>
+        </div>
+        <div class="lb-col-headers">
+          <span>#</span><span style="text-align:left">Player</span><span>GP</span><span>${lb.stat}</span><span>Team</span>
+        </div>
+        ${rows}
+      </div>
+    `;
+  }).join('');
+}
+
+function buildTeamStats() {
+  const grid = document.getElementById('team-grid');
+  const q = searchQuery.toLowerCase();
+
+  const teamStatDefs = [
+    { label: 'Points Per Game',            key: 'ppg',   stat: 'PPG'   },
+    { label: 'Points Allowed Per Game',    key: 'papg',  stat: 'PAPG'  },
+    { label: 'Assists Per Game',           key: 'apg',   stat: 'APG'   },
+    { label: 'Steals Per Game',            key: 'spg',   stat: 'SPG'   },
+    { label: 'Rebounds Per Game',          key: 'rpg',   stat: 'RPG'   },
+    { label: 'Turnovers Per Game',         key: 'topg',  stat: 'TOPG'  },
+    { label: 'Point Differential',         key: 'pd',    stat: 'PD'    },
+    { label: 'Field Goal Percentage',      key: 'fgPct', stat: 'FG%'   },
+    { label: 'Total Field Goals Made',     key: 'fgm',   stat: 'FGM'   },
+    { label: 'Total Field Goals Attempted',key: 'fga',   stat: 'FGA'   },
+  ];
+
+  grid.innerHTML = teamStatDefs.map(def => {
+    // sort teams by stat descending (nulls last), ascending for papg/topg
+    const ascending = def.key === 'papg' || def.key === 'topg';
+    const teams = Object.entries(teamStats)
+      .filter(([name]) => !q || name.toLowerCase().includes(q))
+      .sort(([, a], [, b]) => {
+        const av = a[def.key], bv = b[def.key];
+        if (av === null && bv === null) return 0;
+        if (av === null) return 1;
+        if (bv === null) return -1;
+        return ascending ? av - bv : bv - av;
+      });
+
+    const rows = teams.map(([name, stats], i) => {
+      const val = stats[def.key];
+      return `
+        <div class="team-row ${i === 0 && val !== null ? 'highlight' : ''}">
+          <span class="team-rank">${i + 1}</span>
+          <span class="team-logo-cell"><img src="${logos[name] || ''}" alt="${name}" loading="lazy"></span>
+          <span class="team-name-cell">${name}</span>
+          <span class="team-val">${fmt(val, def.key)}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="team-table">
+        <div class="team-table-header">
+          <span class="team-table-title">${def.label}</span>
+          <span class="lb-table-stat">${def.stat}</span>
+        </div>
+        <div class="team-col-headers">
+          <span>#</span><span></span><span>Team</span><span style="text-align:right">${def.stat}</span>
+        </div>
+        ${rows}
+      </div>
+    `;
+  }).join('');
+}
+
+function render() {
+  buildLeaderboards();
+  buildTeamStats();
+}
+
+/* ── TABS ── */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── SEARCH ── */
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
