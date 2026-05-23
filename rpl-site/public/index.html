@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPL Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e8001d;
+    --red-dim: rgba(232,0,29,.1);
+    --bg: #060608;
+    --surface: #0d0d10;
+    --surface2: #111115;
+    --border: rgba(255,255,255,.06);
+    --muted: #555;
+    --text: #e8e8ee;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 58px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(6,6,8,.9);
+    backdrop-filter: blur(20px);
+  }
+
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo span { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .06em; color: #fff; }
+  .nav-logo span em { color: var(--red); font-style: normal; }
+
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+
+  /* live indicator */
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+    transition: color .3s;
+  }
+  .live-badge.synced { color: #22c55e; }
+  .live-badge.loading { color: #f59e0b; }
+  .live-badge.error { color: var(--red); }
+
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 currentColor;
+    animation: none;
+  }
+  .live-badge.synced .live-dot { animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
+    70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+
+  /* admin button */
+  .admin-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .admin-btn:hover { border-color: rgba(232,0,29,.4); color: #fff; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 52px 40px 0;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+  }
+
+  .page-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--red);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .page-eyebrow::before { content:''; width:18px; height:2px; background:var(--red); border-radius:2px; }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px,5vw,60px);
+    letter-spacing: .03em; line-height: 1; color: #fff;
+  }
+
+  .page-meta { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .page-meta #last-updated { color: #666; font-style: italic; }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; width: 280px; flex-shrink: 0; }
+
+  .search-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px 10px 40px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; outline: none; transition: border-color .2s;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: rgba(232,0,29,.4); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 2px;
+    padding: 24px 40px 0;
+    border-bottom: 1px solid var(--border);
+    margin-top: 32px;
+  }
+
+  .tab {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 10px 20px; margin-bottom: -1px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; letter-spacing: .04em;
+    transition: color .2s, border-color .2s;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active { color: #fff; border-bottom-color: var(--red); }
+
+  /* ── MAIN ── */
+  main { padding: 36px 40px 80px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 80px 20px;
+    color: var(--muted);
+  }
+  .empty-state svg { opacity: .2; margin-bottom: 20px; }
+  .empty-state h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: .06em; color: #333;
+    margin-bottom: 8px;
+  }
+  .empty-state p { font-size: 13px; }
+
+  /* ── LEADERBOARD GRID ── */
+  .lb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .lb-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .lb-table-header {
+    background: rgba(232,0,29,.08);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .lb-table-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: .06em; color: #fff;
+  }
+
+  .lb-table-stat {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--red);
+  }
+
+  .lb-col-headers {
+    display: grid;
+    grid-template-columns: 28px 1fr 52px 80px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lb-col-headers span {
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .lb-col-headers span:not(:first-child):not(:nth-child(2)) { text-align: center; }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 52px 80px;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    align-items: center;
+    transition: background .15s;
+  }
+
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: rgba(255,255,255,.03); }
+  .lb-row.highlight { background: rgba(232,0,29,.06); }
+  .lb-row.highlight:hover { background: rgba(232,0,29,.1); }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: .04em;
+    color: var(--muted);
+  }
+  .lb-rank.gold { color: #f59e0b; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #b45309; }
+
+  .lb-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .lb-name.search-match { color: var(--red); }
+
+  .lb-gp { text-align: center; font-size: 13px; color: var(--muted); }
+  .lb-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; letter-spacing: .04em; text-align: center; }
+  .lb-row.highlight .lb-val { color: var(--red); }
+
+  /* ── PLAYER STATS VIEW ── */
+  .player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .player-card:hover { border-color: rgba(232,0,29,.2); }
+
+  .player-card-header {
+    background: rgba(232,0,29,.08);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .player-card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: .06em; color: #fff;
+  }
+
+  .player-card-gp {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .player-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .player-stat-cell {
+    background: var(--surface);
+    padding: 12px 14px;
+    text-align: center;
+  }
+
+  .player-stat-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .player-stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: .04em; color: #fff;
+  }
+
+  /* ── ADMIN MODAL ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.8);
+    backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    width: 400px;
+    max-width: calc(100vw - 40px);
+    animation: modalIn .2s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: .06em; color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .modal-sub {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .modal-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; outline: none; transition: border-color .2s;
+    margin-bottom: 16px;
+  }
+  .modal-input:focus { border-color: rgba(232,0,29,.4); }
+
+  .modal-actions { display: flex; gap: 10px; }
+
+  .btn-danger {
+    flex: 1; background: var(--red); border: none; border-radius: 8px;
+    padding: 12px 20px; color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: .04em; cursor: pointer;
+    transition: opacity .2s;
+  }
+  .btn-danger:hover { opacity: .85; }
+  .btn-danger:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-cancel {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 20px; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .btn-cancel:hover { border-color: #fff; color: #fff; }
+
+  .modal-msg {
+    font-size: 12px; margin-top: 12px; text-align: center;
+    min-height: 18px;
+  }
+  .modal-msg.success { color: #22c55e; }
+  .modal-msg.error { color: var(--red); }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <span>RPL <em>DATABASE</em></span>
+  </a>
+  <div class="nav-right">
+    <div class="live-badge loading" id="live-badge">
+      <div class="live-dot"></div>
+      <span id="live-text">Loading…</span>
+    </div>
+    <button class="admin-btn" id="admin-btn">Admin</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <div class="page-eyebrow">Season 10</div>
+    <div class="page-title">Database</div>
+    <div class="page-meta">
+      League Leaders &amp; Player Statistics
+      &nbsp;·&nbsp;
+      <span id="last-updated">Syncing…</span>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="6" cy="6" r="4.5" stroke="#555" stroke-width="1.3"/>
+      <path d="M9.5 9.5L12.5 12.5" stroke="#555" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <input class="search-input" id="search" placeholder="Search player…" autocomplete="off">
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="leaders">League Leaders</button>
+  <button class="tab" data-tab="players">Player Cards</button>
+</div>
+
+<main>
+  <!-- LEAGUE LEADERS -->
+  <div class="view active" id="view-leaders">
+    <div class="lb-grid" id="lb-grid"></div>
+  </div>
+
+  <!-- PLAYER CARDS -->
+  <div class="view" id="view-players">
+    <div class="player-grid" id="player-grid"></div>
+  </div>
+</main>
+
+<!-- ADMIN MODAL -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-title">Admin Panel</div>
+    <div class="modal-sub">Enter your password to reset all player statistics.</div>
+    <input class="modal-input" type="password" id="admin-pass" placeholder="Password" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-danger" id="modal-reset">Reset All Stats</button>
+    </div>
+    <div class="modal-msg" id="modal-msg"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════ */
+const POLL_INTERVAL_MS = 30_000; // auto-refresh every 30s
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let allPlayers = [];   // raw array from API
+let searchQuery = '';
+
+/* ══════════════════════════════════════════════════════
+   LEADERBOARD DEFINITIONS
+══════════════════════════════════════════════════════ */
+const LEADERBOARDS = [
+  { title: 'Points Per Game',          stat: 'PPG',  key: 'PPG',  pct: false, asc: false },
+  { title: 'Assists Per Game',         stat: 'APG',  key: 'APG',  pct: false, asc: false },
+  { title: 'Rebounds Per Game',        stat: 'RPG',  key: 'RPG',  pct: false, asc: false },
+  { title: 'Steals Per Game',          stat: 'SPG',  key: 'SPG',  pct: false, asc: false },
+  { title: 'Blocks Per Game',          stat: 'BPG',  key: 'BPG',  pct: false, asc: false },
+  { title: 'Turnovers Per Game',       stat: 'TOPG', key: 'TOPG', pct: false, asc: true  },
+  { title: 'Field Goal Percentage',    stat: 'FG%',  key: 'FG',   pct: true,  asc: false },
+  { title: '3-Point Percentage',       stat: '3PT%', key: '3PT',  pct: true,  asc: false },
+  { title: 'Free Throw Percentage',    stat: 'FT%',  key: 'FT',   pct: true,  asc: false },
+];
+
+const rankColors = ['gold','silver','bronze','','','','','','',''];
+
+/* ══════════════════════════════════════════════════════
+   FORMAT HELPERS
+══════════════════════════════════════════════════════ */
+function fmt(val, pct) {
+  const n = typeof val === 'number' ? val : parseFloat(val) || 0;
+  const s = n % 1 === 0 ? n.toString() : n.toFixed(1);
+  return pct ? s + '%' : s;
+}
+
+function timeAgo(iso) {
+  if (!iso) return 'Never';
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+/* ══════════════════════════════════════════════════════
+   API FETCH
+══════════════════════════════════════════════════════ */
+let lastUpdatedAt = null;
+
+async function fetchData() {
+  setBadge('loading', 'Syncing…');
+  try {
+    const res = await fetch('/api/averages');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    allPlayers = json.players || [];
+    lastUpdatedAt = json.updatedAt;
+    render();
+    setBadge('synced', 'Live');
+    document.getElementById('last-updated').textContent =
+      `Updated ${timeAgo(lastUpdatedAt)}`;
+  } catch (e) {
+    console.error('Fetch error:', e);
+    setBadge('error', 'Error');
+    document.getElementById('last-updated').textContent = 'Sync failed';
+  }
+}
+
+function setBadge(cls, text) {
+  const badge = document.getElementById('live-badge');
+  badge.className = `live-badge ${cls}`;
+  document.getElementById('live-text').textContent = text;
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════════════════ */
+function render() {
+  buildLeaderboards();
+  buildPlayerCards();
+}
+
+/* ── LEADERBOARDS ── */
+function buildLeaderboards() {
+  const grid = document.getElementById('lb-grid');
+  const q = searchQuery.toLowerCase();
+  const players = allPlayers;
+
+  if (players.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h3>No Data Yet</h3>
+        <p>Stats will appear here after the first game is committed from Roblox.</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = LEADERBOARDS.map(lb => {
+    // Sort players by this stat
+    const sorted = [...players]
+      .filter(p => p.stats && p.stats.GP > 0)
+      .sort((a, b) => {
+        const av = a.stats[lb.key] ?? 0;
+        const bv = b.stats[lb.key] ?? 0;
+        return lb.asc ? av - bv : bv - av;
+      })
+      .slice(0, 10);
+
+    if (sorted.length === 0) return '';
+
+    const rows = sorted.map((p, i) => {
+      const match = q && p.username.toLowerCase().includes(q);
+      return `
+        <div class="lb-row ${i === 0 ? 'highlight' : ''}">
+          <span class="lb-rank ${rankColors[i] || ''}">${i + 1}</span>
+          <span class="lb-name ${match ? 'search-match' : ''}">${p.username}</span>
+          <span class="lb-gp">${p.stats.GP}</span>
+          <span class="lb-val">${fmt(p.stats[lb.key], lb.pct)}</span>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="lb-table">
+        <div class="lb-table-header">
+          <span class="lb-table-title">${lb.title}</span>
+          <span class="lb-table-stat">${lb.stat}</span>
+        </div>
+        <div class="lb-col-headers">
+          <span>#</span><span>Player</span><span>GP</span><span style="text-align:center">${lb.stat}</span>
+        </div>
+        ${rows}
+      </div>`;
+  }).join('');
+}
+
+/* ── PLAYER CARDS ── */
+function buildPlayerCards() {
+  const grid = document.getElementById('player-grid');
+  const q = searchQuery.toLowerCase();
+
+  let players = allPlayers.filter(p => p.stats && p.stats.GP > 0);
+  if (q) players = players.filter(p => p.username.toLowerCase().includes(q));
+  players.sort((a, b) => (b.stats.PPG ?? 0) - (a.stats.PPG ?? 0));
+
+  if (players.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h3>${q ? 'No Results' : 'No Data Yet'}</h3>
+        <p>${q ? `No players matching "${q}"` : 'Stats will appear here after the first game.'}</p>
+      </div>`;
+    return;
+  }
+
+  const STATS = [
+    { label: 'PPG',  key: 'PPG',  pct: false },
+    { label: 'APG',  key: 'APG',  pct: false },
+    { label: 'RPG',  key: 'RPG',  pct: false },
+    { label: 'SPG',  key: 'SPG',  pct: false },
+    { label: 'BPG',  key: 'BPG',  pct: false },
+    { label: 'TOPG', key: 'TOPG', pct: false },
+    { label: 'FG%',  key: 'FG',   pct: true  },
+    { label: '3PT%', key: '3PT',  pct: true  },
+    { label: 'FT%',  key: 'FT',   pct: true  },
+  ];
+
+  grid.innerHTML = players.map(p => {
+    const cells = STATS.map(s => `
+      <div class="player-stat-cell">
+        <div class="player-stat-label">${s.label}</div>
+        <div class="player-stat-val">${fmt(p.stats[s.key], s.pct)}</div>
+      </div>`).join('');
+
+    return `
+      <div class="player-card">
+        <div class="player-card-header">
+          <span class="player-card-name">${p.username}</span>
+          <span class="player-card-gp">${p.stats.GP} GP</span>
+        </div>
+        <div class="player-stat-grid">${cells}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════════════ */
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+/* ══════════════════════════════════════════════════════
+   ADMIN MODAL
+══════════════════════════════════════════════════════ */
+const backdrop = document.getElementById('modal-backdrop');
+const passInput = document.getElementById('admin-pass');
+const msgEl = document.getElementById('modal-msg');
+const resetBtn = document.getElementById('modal-reset');
+
+document.getElementById('admin-btn').addEventListener('click', () => {
+  backdrop.classList.add('open');
+  passInput.value = '';
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+  setTimeout(() => passInput.focus(), 50);
+});
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  backdrop.classList.remove('open');
+});
+
+backdrop.addEventListener('click', e => {
+  if (e.target === backdrop) backdrop.classList.remove('open');
+});
+
+passInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') resetBtn.click();
+});
+
+resetBtn.addEventListener('click', async () => {
+  const pass = passInput.value.trim();
+  if (!pass) { showMsg('Enter your password.', 'error'); return; }
+
+  resetBtn.disabled = true;
+  resetBtn.textContent = 'Resetting…';
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+
+  try {
+    const res = await fetch('/api/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed');
+
+    showMsg(`✓ Reset complete. ${json.deleted} player records deleted.`, 'success');
+    allPlayers = [];
+    render();
+    setTimeout(() => backdrop.classList.remove('open'), 2000);
+  } catch (e) {
+    showMsg('Incorrect password or server error.', 'error');
+  } finally {
+    resetBtn.disabled = false;
+    resetBtn.textContent = 'Reset All Stats';
+  }
+});
+
+function showMsg(text, type) {
+  msgEl.textContent = text;
+  msgEl.className = `modal-msg ${type}`;
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTO-POLL
+══════════════════════════════════════════════════════ */
+fetchData();
+setInterval(() => {
+  fetchData();
+  // also update the "X min ago" text every 30s
+  if (lastUpdatedAt) {
+    document.getElementById('last-updated').textContent =
+      `Updated ${timeAgo(lastUpdatedAt)}`;
+  }
+}, POLL_INTERVAL_MS);
+</script>
+</body>
+</html>
