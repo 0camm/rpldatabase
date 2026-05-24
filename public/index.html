@@ -310,10 +310,44 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 36px;
-    width: 400px;
+    width: 460px;
     max-width: 100%;
     animation: modalIn .2s ease;
   }
+
+  .modal-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  .modal-section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .modal-section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .modal-row {
+    display: flex; gap: 8px; align-items: stretch;
+  }
+
+  .modal-row .modal-input {
+    flex: 1; margin-bottom: 0;
+  }
+
+  .btn-secondary {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0 18px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: border-color .2s, color .2s;
+    white-space: nowrap; min-height: 44px;
+  }
+  .btn-secondary:hover { border-color: rgba(232,0,29,.4); color: #fff; }
+  .btn-secondary:disabled { opacity: .4; cursor: not-allowed; }
 
   @keyframes modalIn {
     from { opacity: 0; transform: scale(.95) translateY(10px); }
@@ -532,6 +566,18 @@
       flex-direction: column-reverse;
     }
 
+    .modal-row {
+      flex-direction: column;
+    }
+
+    .modal-row .modal-input {
+      margin-bottom: 8px;
+    }
+
+    .btn-secondary {
+      width: 100%; min-height: 48px;
+    }
+
     .btn-danger,
     .btn-cancel {
       width: 100%;
@@ -646,12 +692,27 @@
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
     <div class="modal-title">Admin Panel</div>
-    <div class="modal-sub">Enter your password to reset all player statistics.</div>
+    <div class="modal-sub">Authenticate once to manage player statistics.</div>
+
+    <!-- Password -->
     <input class="modal-input" type="password" id="admin-pass" placeholder="Password" autocomplete="off">
+
+    <!-- Remove single player -->
+    <div class="modal-section-label">Remove Player</div>
+    <div class="modal-row">
+      <input class="modal-input" type="text" id="remove-username" placeholder="Roblox username" autocomplete="off" spellcheck="false">
+      <button class="btn-secondary" id="modal-remove">Remove</button>
+    </div>
+
+    <hr class="modal-divider">
+
+    <!-- Reset all -->
+    <div class="modal-section-label">Danger Zone</div>
     <div class="modal-actions">
       <button class="btn-cancel" id="modal-cancel">Cancel</button>
       <button class="btn-danger" id="modal-reset">Reset All Stats</button>
     </div>
+
     <div class="modal-msg" id="modal-msg"></div>
   </div>
 </div>
@@ -847,10 +908,13 @@ const backdrop = document.getElementById('modal-backdrop');
 const passInput = document.getElementById('admin-pass');
 const msgEl = document.getElementById('modal-msg');
 const resetBtn = document.getElementById('modal-reset');
+const removeBtn = document.getElementById('modal-remove');
+const removeUsernameInput = document.getElementById('remove-username');
 
 document.getElementById('admin-btn').addEventListener('click', () => {
   backdrop.classList.add('open');
   passInput.value = '';
+  removeUsernameInput.value = '';
   msgEl.textContent = '';
   msgEl.className = 'modal-msg';
   setTimeout(() => passInput.focus(), 50);
@@ -865,7 +929,43 @@ backdrop.addEventListener('click', e => {
 });
 
 passInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') resetBtn.click();
+  if (e.key === 'Enter') removeUsernameInput.focus();
+});
+
+removeUsernameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') removeBtn.click();
+});
+
+removeBtn.addEventListener('click', async () => {
+  const pass = passInput.value.trim();
+  const username = removeUsernameInput.value.trim();
+  if (!pass) { showMsg('Enter your password.', 'error'); return; }
+  if (!username) { showMsg('Enter a username to remove.', 'error'); return; }
+
+  removeBtn.disabled = true;
+  removeBtn.textContent = 'Removing…';
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+
+  try {
+    const res = await fetch('/api/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass, username })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed');
+
+    showMsg(`✓ "${json.deleted}" has been removed.`, 'success');
+    allPlayers = allPlayers.filter(p => p.username.toLowerCase() !== json.deleted.toLowerCase());
+    removeUsernameInput.value = '';
+    render();
+  } catch (e) {
+    showMsg(e.message || 'Incorrect password or player not found.', 'error');
+  } finally {
+    removeBtn.disabled = false;
+    removeBtn.textContent = 'Remove';
+  }
 });
 
 resetBtn.addEventListener('click', async () => {
