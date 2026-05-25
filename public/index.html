@@ -593,130 +593,6 @@
     .lb-table-title { font-size:14px; }
   }
 
-  /* ── DIRECTORY ── */
-  .directory-section { margin-bottom: 36px; }
-
-  .directory-section-header {
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .directory-section-icon {
-    width: 34px; height: 34px; border-radius: 8px;
-    background: var(--red-dim);
-    border: 1px solid rgba(232,0,29,.2);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .directory-section-icon.coach-icon {
-    background: var(--blue-dim);
-    border-color: rgba(96,165,250,.2);
-  }
-
-  .directory-section-meta { flex: 1; }
-
-  .directory-section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px; letter-spacing: .06em; color: #fff;
-    line-height: 1;
-  }
-
-  .directory-section-count {
-    font-size: 10px; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--muted);
-    margin-top: 3px;
-  }
-
-  .directory-divider {
-    flex: 1; height: 1px; background: var(--border);
-  }
-
-  .directory-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 10px;
-  }
-
-  .directory-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px;
-    transition: border-color .18s, background .18s;
-    position: relative; overflow: hidden;
-  }
-
-  .directory-card::before {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--red);
-    opacity: 0;
-    transition: opacity .18s;
-  }
-  .directory-card.coach-card::before { background: var(--blue); }
-
-  .directory-card:hover {
-    border-color: rgba(232,0,29,.3);
-    background: rgba(232,0,29,.03);
-  }
-  .directory-card:hover::before { opacity: 1; }
-  .directory-card.coach-card:hover {
-    border-color: rgba(96,165,250,.3);
-    background: rgba(96,165,250,.03);
-  }
-
-  .directory-avatar {
-    width: 36px; height: 36px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px; letter-spacing: .04em;
-    flex-shrink: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--red);
-  }
-  .directory-card.coach-card .directory-avatar { color: var(--blue); }
-
-  .directory-info { flex: 1; min-width: 0; }
-
-  .directory-name {
-    font-size: 13px; font-weight: 600; color: var(--text);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    line-height: 1.2;
-  }
-
-  .directory-role {
-    font-size: 10px; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; margin-top: 3px;
-  }
-  .directory-role.owner { color: var(--red); }
-  .directory-role.coach { color: var(--blue); }
-
-  .directory-badge {
-    font-size: 9px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; padding: 2px 6px;
-    border-radius: 4px; flex-shrink: 0;
-  }
-  .directory-badge.owner-badge {
-    background: var(--red-dim);
-    border: 1px solid rgba(232,0,29,.2);
-    color: var(--red);
-  }
-  .directory-badge.coach-badge {
-    background: var(--blue-dim);
-    border: 1px solid rgba(96,165,250,.2);
-    color: var(--blue);
-  }
-
-  @media (max-width: 640px) {
-    .directory-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
-    .directory-card { padding: 11px 12px; gap: 10px; }
-    .directory-avatar { width: 30px; height: 30px; font-size: 13px; }
-  }
-
   @media (hover:none) and (pointer:coarse) {
     .lb-row:hover { background:transparent; }
     .lb-row.top:hover { background:rgba(232,0,29,.05); }
@@ -764,7 +640,6 @@
   <div class="tabs">
     <button class="tab active" data-tab="leaders">League Leaders</button>
     <button class="tab" data-tab="players">Player Cards</button>
-    <button class="tab" data-tab="directory">League Directory</button>
   </div>
 
   <!-- VIEWS -->
@@ -774,41 +649,6 @@
 
   <div class="view" id="view-players">
     <div class="player-grid" id="player-grid"></div>
-  </div>
-
-  <div class="view" id="view-directory">
-    <div class="directory-section" id="dir-owners-section">
-      <div class="directory-section-header">
-        <div class="directory-section-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 1L9.8 5.5H14.5L10.6 8.4L12.1 13L8 10.2L3.9 13L5.4 8.4L1.5 5.5H6.2L8 1Z" fill="var(--red)" opacity=".9"/>
-          </svg>
-        </div>
-        <div class="directory-section-meta">
-          <div class="directory-section-title">Franchise Owners</div>
-          <div class="directory-section-count" id="dir-owners-count">0 members</div>
-        </div>
-        <div class="directory-divider"></div>
-      </div>
-      <div class="directory-grid" id="dir-owners-grid"></div>
-    </div>
-
-    <div class="directory-section" id="dir-coaches-section">
-      <div class="directory-section-header">
-        <div class="directory-section-icon coach-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="5" r="2.5" stroke="var(--blue)" stroke-width="1.3"/>
-            <path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="var(--blue)" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="directory-section-meta">
-          <div class="directory-section-title">Team Coaches</div>
-          <div class="directory-section-count" id="dir-coaches-count">0 members</div>
-        </div>
-        <div class="directory-divider"></div>
-      </div>
-      <div class="directory-grid" id="dir-coaches-grid"></div>
-    </div>
   </div>
 
 </div>
@@ -956,7 +796,6 @@ async function fetchData() {
 function render() {
   buildLeaderboards();
   buildPlayerCards();
-  buildDirectory();
 }
 
 /* ── LEADERBOARDS ── */
@@ -1070,82 +909,6 @@ function buildPlayerCards() {
   }).join('');
 }
 
-/* ── LEAGUE DIRECTORY ── */
-const FRANCHISE_OWNERS = [
-  'Maseeh_XO',
-  'YoSoy_Gelo',
-  'vRqiN',
-  'YNGBrandonn',
-  'Beesechurger99',
-  'CJ_Smoke',
-  'BackyardSam',
-  'SuperiorSol',
-  'iNotBirdman',
-  'Deshlocc',
-  'xKrazyKev',
-  'Dripset_Ballin',
-];
-
-const TEAM_COACHES = [
-  'CoachSlick',
-  'SilentHoops',
-  'TacticianJ',
-  'CourtVision',
-  'BenchBoss',
-  'PlaycallerK',
-];
-
-function getInitials(name) {
-  const clean = name.replace(/[^a-zA-Z]/g, '');
-  return clean.slice(0, 2).toUpperCase() || '??';
-}
-
-function buildDirectoryCard(name, type) {
-  const isCoach = type === 'coach';
-  const initials = getInitials(name);
-  return `<div class="directory-card ${isCoach ? 'coach-card' : ''}">
-    <div class="directory-avatar">${initials}</div>
-    <div class="directory-info">
-      <div class="directory-name">${name}</div>
-      <div class="directory-role ${isCoach ? 'coach' : 'owner'}">${isCoach ? 'Head Coach' : 'Franchise Owner'}</div>
-    </div>
-    <span class="directory-badge ${isCoach ? 'coach-badge' : 'owner-badge'}">${isCoach ? 'HC' : 'FO'}</span>
-  </div>`;
-}
-
-function buildDirectory() {
-  const q = searchQuery.toLowerCase();
-
-  const owners = q
-    ? FRANCHISE_OWNERS.filter(n => n.toLowerCase().includes(q))
-    : FRANCHISE_OWNERS;
-  const coaches = q
-    ? TEAM_COACHES.filter(n => n.toLowerCase().includes(q))
-    : TEAM_COACHES;
-
-  const ownersGrid = document.getElementById('dir-owners-grid');
-  const coachesGrid = document.getElementById('dir-coaches-grid');
-  const ownersCount = document.getElementById('dir-owners-count');
-  const coachesCount = document.getElementById('dir-coaches-count');
-
-  ownersCount.textContent = `${owners.length} member${owners.length !== 1 ? 's' : ''}`;
-  coachesCount.textContent = `${coaches.length} member${coaches.length !== 1 ? 's' : ''}`;
-
-  ownersGrid.innerHTML = owners.length
-    ? owners.map(n => buildDirectoryCard(n, 'owner')).join('')
-    : `<div class="empty-state" style="padding:32px 20px">
-        <h3 style="font-size:18px">No Results</h3>
-        <p>No franchise owners matching &ldquo;${q}&rdquo;</p>
-       </div>`;
-
-  coachesGrid.innerHTML = coaches.length
-    ? coaches.map(n => buildDirectoryCard(n, 'coach')).join('')
-    : `<div class="empty-state" style="padding:32px 20px">
-        <h3 style="font-size:18px">No Results</h3>
-        <p>No coaches matching &ldquo;${q}&rdquo;</p>
-       </div>`;
-}
-
 /* ── TABS ── */
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1153,7 +916,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('view-' + tab.dataset.tab).classList.add('active');
-    if (tab.dataset.tab === 'directory') buildDirectory();
   });
 });
 
