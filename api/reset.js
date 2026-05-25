@@ -14,13 +14,13 @@ export default async function handler(req, res) {
     const kv = await getClient();
     const keys = await kv.keys('player:*');
 
-    if (keys && keys.length > 0) {
+    if (keys.length > 0) {
       await Promise.all(keys.map(key => kv.del(key)));
     }
 
     await kv.del('meta:updatedAt');
 
-    return res.status(200).json({ success: true, deleted: keys ? keys.length : 0 });
+    return res.status(200).json({ success: true, deleted: keys.length });
   } catch (err) {
     console.error('POST /api/reset error:', err);
     return res.status(500).json({ error: 'Internal server error' });
