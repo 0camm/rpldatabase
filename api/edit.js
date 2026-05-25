@@ -1,42 +1,21 @@
 import { kv } from '@vercel/kv';
-
 const ADMIN_PASS = process.env.ADMIN_PASS;
-
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { password, username, stats } = req.body || {};
-
-  if (!ADMIN_PASS || password !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  if (!username || typeof username !== 'string') {
-    return res.status(400).json({ error: 'Missing username' });
-  }
-
-  if (!stats || typeof stats !== 'object') {
-    return res.status(400).json({ error: 'Missing stats' });
-  }
+  if (!ADMIN_PASS || password !== ADMIN_PASS) return res.status(401).json({ error: 'Unauthorized' });
+  if (!username || typeof username !== 'string') return res.status(400).json({ error: 'Missing username' });
+  if (!stats || typeof stats !== 'object') return res.status(400).json({ error: 'Missing stats' });
 
   const safeUsername = String(username).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 64);
-  if (!safeUsername) {
-    return res.status(400).json({ error: 'Invalid username' });
-  }
+  if (!safeUsername) return res.status(400).json({ error: 'Invalid username' });
 
   try {
     const key = `player:${safeUsername}`;
     const existing = await kv.get(key);
-
-    if (!existing) {
-      return res.status(404).json({ error: `Player "${safeUsername}" not found` });
-    }
+    if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
 
     const record = {
       username: safeUsername,
@@ -57,8 +36,14 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString()
     };
 
+    const now = new Date().toISOString();
     await kv.set(key, record);
-    await kv.set('meta:updatedAt', new Date().toISOString());
+    await kv.set('meta:updatedAt', now);
+
+    // Rebuild cache:averages so reads stay fast
+    const keys = await kv.keys('player:*');
+    const players = await kv.mget(...keys);
+    await kv.set('cache:averages', players.filter(Boolean));
 
     return res.status(200).json({ success: true, player: record });
   } catch (err) {
