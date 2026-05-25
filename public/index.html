@@ -821,11 +821,12 @@ function buildLeaderboards() {
 
   grid.innerHTML = LEADERBOARDS.map(lb => {
     const sorted = [...players]
-      .filter(p => p.stats)
+      .filter(p => p.stats && p.stats.GP > 0)
       .sort((a,b) => {
         const av = a.stats[lb.key] ?? 0, bv = b.stats[lb.key] ?? 0;
         return lb.asc ? av - bv : bv - av;
-      });
+      })
+      .slice(0, 10);
 
     if (!sorted.length) return '';
 
@@ -860,7 +861,7 @@ function buildPlayerCards() {
   const grid = document.getElementById('player-grid');
   const q = searchQuery.toLowerCase();
 
-  let players = allPlayers.filter(p => p.stats);
+  let players = allPlayers.filter(p => p.stats && p.stats.GP > 0);
   if (q) players = players.filter(p => p.username.toLowerCase().includes(q));
   players.sort((a,b) => (b.stats.PPG??0)-(a.stats.PPG??0));
 
