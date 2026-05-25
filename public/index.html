@@ -861,7 +861,7 @@ function buildPlayerCards() {
   const grid = document.getElementById('player-grid');
   const q = searchQuery.toLowerCase();
 
-  let players = allPlayers.filter(p => p.stats && p.stats.GP > 0);
+  let players = allPlayers.filter(p => p.stats);
   if (q) players = players.filter(p => p.username.toLowerCase().includes(q));
   players.sort((a,b) => (b.stats.PPG??0)-(a.stats.PPG??0));
 
