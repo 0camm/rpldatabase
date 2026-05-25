@@ -16,12 +16,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ players: [], updatedAt: null });
     }
 
-    const players = await Promise.all(
-      keys.map(async (key) => {
-        const data = await kv.get(key);
-        return data;
-      })
-    );
+    const players = await kv.mget(...keys);
 
     const updatedAt = await kv.get('meta:updatedAt');
 
