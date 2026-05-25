@@ -1,12 +1,3 @@
-{
-  "name": "rpl-database",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vercel dev"
-  },
-  "dependencies": {
-    "redis": "^4.7.0"
-  }
+"dependencies": {
+  "@upstash/redis": "^1.34.0"
 }
