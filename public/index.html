@@ -821,12 +821,11 @@ function buildLeaderboards() {
 
   grid.innerHTML = LEADERBOARDS.map(lb => {
     const sorted = [...players]
-      .filter(p => p.stats && p.stats.GP > 0)
+      .filter(p => p.stats)
       .sort((a,b) => {
         const av = a.stats[lb.key] ?? 0, bv = b.stats[lb.key] ?? 0;
         return lb.asc ? av - bv : bv - av;
-      })
-      .slice(0, 10);
+      });
 
     if (!sorted.length) return '';
 
