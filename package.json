@@ -7,6 +7,6 @@
     "dev": "vercel dev"
   },
   "dependencies": {
-    "redis": "^4.7.0"
+    "@upstash/redis": "^1.34.0"
   }
 }
