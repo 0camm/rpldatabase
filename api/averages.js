@@ -16,7 +16,6 @@ export default async function handler(req, res) {
       await Promise.all(keys.map(key => kv.get(key)))
     )
       .filter(Boolean)
-      .map(raw => JSON.parse(raw));
 
     const updatedAt = await kv.get('meta:updatedAt');
 
