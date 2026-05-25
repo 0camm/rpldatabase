@@ -1,23 +1,26 @@
-import { kv } from '@vercel/kv';
+import { getClient } from './_redis.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const [data, updatedAt] = await Promise.all([
-      kv.get('cache:averages'),
-      kv.get('meta:updatedAt')
-    ]);
+    const kv = await getClient();
+    const keys = await kv.keys('player:*');
 
-    if (!data) {
+    if (!keys || keys.length === 0) {
       return res.status(200).json({ players: [], updatedAt: null });
     }
 
-    return res.status(200).json({
-      players: data,
-      updatedAt: updatedAt || null
-    });
+    const players = (
+      await Promise.all(keys.map(key => kv.get(key)))
+    )
+      .filter(Boolean)
+      .map(raw => JSON.parse(raw));
+
+    const updatedAt = await kv.get('meta:updatedAt');
+
+    return res.status(200).json({ players, updatedAt: updatedAt || null });
   } catch (err) {
     console.error('GET /api/averages error:', err);
     return res.status(500).json({ error: 'Internal server error' });

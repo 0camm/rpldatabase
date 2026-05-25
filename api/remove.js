@@ -1,38 +1,25 @@
-import { kv } from '@vercel/kv';
+import { getClient } from './_redis.js';
 
 const ADMIN_PASS = process.env.ADMIN_PASS;
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { password, username } = req.body || {};
 
-  if (!ADMIN_PASS || password !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  if (!username || typeof username !== 'string') {
-    return res.status(400).json({ error: 'Missing username' });
-  }
+  if (!ADMIN_PASS || password !== ADMIN_PASS) return res.status(401).json({ error: 'Unauthorized' });
+  if (!username || typeof username !== 'string') return res.status(400).json({ error: 'Missing username' });
 
   const safeUsername = String(username).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 64);
-  if (!safeUsername) {
-    return res.status(400).json({ error: 'Invalid username' });
-  }
+  if (!safeUsername) return res.status(400).json({ error: 'Invalid username' });
 
   try {
+    const kv = await getClient();
     const key = `player:${safeUsername}`;
     const existing = await kv.get(key);
 
-    if (!existing) {
-      return res.status(404).json({ error: `Player "${safeUsername}" not found` });
-    }
+    if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
 
     await kv.del(key);
     await kv.set('meta:updatedAt', new Date().toISOString());
