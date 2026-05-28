@@ -37,11 +37,13 @@ export default async function handler(req, res) {
         '3PT': Number(stats['3PT']) || 0,
         '2PT': Number(stats['2PT']) || 0,
       },
+      // updatedAt stored internally but never surfaced via /api/averages
       updatedAt: new Date().toISOString()
     };
 
     const kv = await getClient();
-    await kv.set(`player:${safeUsername}`, JSON.stringify(record));
+    // Store as native object — Upstash serializes it; avoids double-JSON-string issue
+    await kv.set(`player:${safeUsername}`, record);
     await kv.set('meta:updatedAt', new Date().toISOString());
 
     return res.status(200).json({ success: true });
