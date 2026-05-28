@@ -41,10 +41,15 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString()
     };
 
-    await kv.set(key, JSON.stringify(record));
+    // Store as native object — Upstash serializes it; avoids double-JSON-string issue
+    await kv.set(key, record);
     await kv.set('meta:updatedAt', new Date().toISOString());
 
-    return res.status(200).json({ success: true, player: record });
+    // Return only the public-facing shape (no internal updatedAt per player)
+    return res.status(200).json({
+      success: true,
+      player: { username: record.username, stats: record.stats }
+    });
   } catch (err) {
     console.error('POST /api/edit error:', err);
     return res.status(500).json({ error: 'Internal server error' });
