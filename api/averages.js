@@ -1,7 +1,5 @@
 import { getClient } from './_redis.js';
 
-const ALLOWED_STATS = ['GP','PPG','APG','RPG','SPG','BPG','TOPG','FTPG','FG','FT','3PT','2PT'];
-
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -14,27 +12,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ players: [], updatedAt: null });
     }
 
-    const raw = await Promise.all(keys.map(key => kv.get(key)));
-
-    const players = raw
-      .map(item => {
-        try {
-          // Upstash may return a parsed object or a JSON string depending on how it was stored
-          const record = typeof item === 'string' ? JSON.parse(item) : item;
-          if (!record || !record.username || !record.stats) return null;
-
-          // Only expose the fields the frontend needs — no internal timestamps per player
-          const safeStats = {};
-          for (const key of ALLOWED_STATS) {
-            safeStats[key] = typeof record.stats[key] === 'number' ? record.stats[key] : 0;
-          }
-
-          return { username: record.username, stats: safeStats };
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+    const players = (
+      await Promise.all(keys.map(key => kv.get(key)))
+    )
+      .filter(Boolean)
 
     const updatedAt = await kv.get('meta:updatedAt');
 
