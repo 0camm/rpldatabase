@@ -17,9 +17,9 @@ export default async function handler(req, res) {
 
   try {
     const kv = await getClient();
-    const key = `player:${safeUsername}`;
-    const existing = await kv.get(key);
 
+    // 1 command to check existence
+    const existing = await kv.hget('players', safeUsername);
     if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
 
     const record = {
@@ -41,8 +41,11 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString()
     };
 
-    await kv.set(key, JSON.stringify(record));
-    await kv.set('meta:updatedAt', new Date().toISOString());
+    // 2 commands: hset + meta
+    await Promise.all([
+      kv.hset('players', { [safeUsername]: JSON.stringify(record) }),
+      kv.set('meta:updatedAt', new Date().toISOString()),
+    ]);
 
     return res.status(200).json({ success: true, player: record });
   } catch (err) {
