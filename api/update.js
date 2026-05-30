@@ -1,26 +1,25 @@
 import { getClient } from './_redis.js';
 
-const ADMIN_PASS = process.env.ADMIN_PASS;
+const ROBLOX_SECRET = process.env.ROBLOX_SECRET;
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { password, username, stats } = req.body || {};
-
-  if (!ADMIN_PASS || password !== ADMIN_PASS) return res.status(401).json({ error: 'Unauthorized' });
-  if (!username || typeof username !== 'string') return res.status(400).json({ error: 'Missing username' });
-  if (!stats || typeof stats !== 'object') return res.status(400).json({ error: 'Missing stats' });
-
-  const safeUsername = String(username).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 64);
-  if (!safeUsername) return res.status(400).json({ error: 'Invalid username' });
+  const auth = req.headers['authorization'];
+  if (!ROBLOX_SECRET || auth !== `Bearer ${ROBLOX_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   try {
-    const kv = await getClient();
+    const body = req.body;
+    if (!body || !body.username || !body.stats) {
+      return res.status(400).json({ error: 'Missing username or stats' });
+    }
 
-    // 1 command to check existence
-    const existing = await kv.hget('players', safeUsername);
-    if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
+    const { username, stats } = body;
+    const safeUsername = String(username).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 64);
+    if (!safeUsername) return res.status(400).json({ error: 'Invalid username' });
 
     const record = {
       username: safeUsername,
@@ -41,15 +40,17 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString()
     };
 
-    // 2 commands: hset + meta
+    const kv = await getClient();
+
+    // 2 commands: hset (1 field in the shared hash) + set meta
     await Promise.all([
       kv.hset('players', { [safeUsername]: JSON.stringify(record) }),
       kv.set('meta:updatedAt', new Date().toISOString()),
     ]);
 
-    return res.status(200).json({ success: true, player: record });
+    return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('POST /api/edit error:', err);
+    console.error('POST /api/update error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
