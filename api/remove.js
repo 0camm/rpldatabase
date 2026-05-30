@@ -16,13 +16,16 @@ export default async function handler(req, res) {
 
   try {
     const kv = await getClient();
-    const key = `player:${safeUsername}`;
-    const existing = await kv.get(key);
 
+    // 1 command to check existence
+    const existing = await kv.hget('players', safeUsername);
     if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
 
-    await kv.del(key);
-    await kv.set('meta:updatedAt', new Date().toISOString());
+    // 2 commands: hdel + meta
+    await Promise.all([
+      kv.hdel('players', safeUsername),
+      kv.set('meta:updatedAt', new Date().toISOString()),
+    ]);
 
     return res.status(200).json({ success: true, deleted: safeUsername });
   } catch (err) {
