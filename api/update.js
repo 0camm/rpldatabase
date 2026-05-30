@@ -41,8 +41,12 @@ export default async function handler(req, res) {
     };
 
     const kv = await getClient();
-    await kv.set(`player:${safeUsername}`, JSON.stringify(record));
-    await kv.set('meta:updatedAt', new Date().toISOString());
+
+    // 2 commands: hset (1 field in the shared hash) + set meta
+    await Promise.all([
+      kv.hset('players', { [safeUsername]: JSON.stringify(record) }),
+      kv.set('meta:updatedAt', new Date().toISOString()),
+    ]);
 
     return res.status(200).json({ success: true });
   } catch (err) {
