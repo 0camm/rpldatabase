@@ -6,18 +6,18 @@ export default async function handler(req, res) {
 
   try {
     const kv = await getClient();
-    const keys = await kv.keys('player:*');
 
-    if (!keys || keys.length === 0) {
-      return res.status(200).json({ players: [], updatedAt: null });
-    }
+    // 2 commands total: hgetall + get — regardless of player count
+    const [raw, updatedAt] = await Promise.all([
+      kv.hgetall('players'),
+      kv.get('meta:updatedAt'),
+    ]);
 
-    const players = (
-      await Promise.all(keys.map(key => kv.get(key)))
-    )
-      .filter(Boolean)
+    if (!raw) return res.status(200).json({ players: [], updatedAt: null });
 
-    const updatedAt = await kv.get('meta:updatedAt');
+    const players = Object.values(raw).map(v =>
+      typeof v === 'string' ? JSON.parse(v) : v
+    );
 
     return res.status(200).json({ players, updatedAt: updatedAt || null });
   } catch (err) {
