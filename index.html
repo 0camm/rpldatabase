@@ -25,14 +25,20 @@ body{
   background:var(--bg);color:var(--tx);
   font-family:'Inter',sans-serif;font-size:14px;
   min-height:100vh;-webkit-font-smoothing:antialiased;
-  width:100%;max-width:100vw;overflow-x:hidden;
+  width:100%;overflow-x:hidden;
+}
+
+/* ── SITE WRAPPER ── */
+.site-wrap{
+  max-width:1600px;
+  margin:0 auto;
+  padding:0 clamp(16px,3vw,48px);
 }
 
 /* ── STATUS BAR ── */
 .sbar{
   display:flex;align-items:center;justify-content:space-between;
-  gap:14px;padding:9px 20px;
-  width:100%;
+  gap:14px;padding:9px 0;
 }
 .sbar-left{display:flex;align-items:center;gap:8px}
 .sbar-sync{font-size:11px;color:var(--mu);font-family:'JetBrains Mono',monospace}
@@ -59,15 +65,14 @@ body{
 
 /* ── HERO ── */
 .hero{
-  padding:28px 20px 24px;
-  position:relative;
   border-bottom:1px solid var(--b2);
-  width:100%;
+  position:relative;
 }
 .hero::after{
-  content:'';position:absolute;bottom:0;left:0;width:180px;height:2px;
+  content:'';position:absolute;bottom:0;left:clamp(16px,3vw,48px);width:180px;height:2px;
   background:linear-gradient(90deg,var(--red),transparent);
 }
+.hero-inner{padding:28px 0 24px}
 .hero-top{
   display:flex;align-items:flex-start;justify-content:space-between;
   gap:16px;flex-wrap:wrap;
@@ -80,7 +85,7 @@ body{
 .hero-eyebrow::before{content:'';width:16px;height:1px;background:var(--red);flex-shrink:0}
 .hero-h1{
   font-family:'Bebas Neue',sans-serif;
-  font-size:44px;letter-spacing:.02em;line-height:.92;color:#fff;
+  font-size:clamp(36px,5vw,56px);letter-spacing:.02em;line-height:.92;color:#fff;
 }
 .hero-h1 em{color:var(--red);font-style:normal}
 .hero-sub{
@@ -89,11 +94,9 @@ body{
 }
 .hdot{width:3px;height:3px;border-radius:50%;background:var(--mu2);flex-shrink:0}
 
-/* search in hero */
 .hero-search-wrap{
-  position:relative;width:clamp(180px,28vw,240px);
-  align-self:flex-end;
-  flex-shrink:0;
+  position:relative;width:clamp(180px,22vw,280px);
+  align-self:flex-end;flex-shrink:0;
 }
 .hero-search-icon{
   position:absolute;left:10px;top:50%;transform:translateY(-50%);
@@ -113,7 +116,7 @@ body{
 
 /* ── ALERT ── */
 .alert{
-  display:none;margin:12px 20px 0;
+  display:none;margin:12px 0 0;
   padding:10px 14px;
   font-size:12px;color:var(--mu);
   background:var(--s1);border:1px solid var(--b);
@@ -122,10 +125,10 @@ body{
 .alert.on{display:block}
 
 /* ── MAIN ── */
-.main{padding:24px 20px 72px;width:100%}
+.main{padding:24px 0 72px;}
 
 /* ── SECTION HEADER ── */
-.sec-hd{margin-bottom:14px;width:100%}
+.sec-hd{margin-bottom:14px}
 .sec-hd-top{
   display:flex;align-items:center;gap:10px;margin-bottom:10px;
 }
@@ -137,10 +140,8 @@ body{
 }
 .sec-rule{flex:1;height:1px;background:var(--b2)}
 
-/* filters row */
 .filters{
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-  width:100%;
 }
 .fc{
   background:var(--s2);border:1px solid var(--b);
@@ -152,7 +153,7 @@ body{
 }
 .fc::placeholder{color:var(--mu)}
 .fc:focus{border-color:var(--red-edge)}
-.fc-search{flex:1;min-width:80px;max-width:160px}
+.fc-search{flex:1;min-width:80px;max-width:200px}
 select.fc{
   padding-right:24px;cursor:pointer;
   -webkit-appearance:none;appearance:none;
@@ -187,11 +188,11 @@ select.fc{
 .view.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── LEADERBOARD GRID ── */
+/* ── LEADERBOARD GRID — fills available space with proper columns ── */
 .lb-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(clamp(300px,40vw,400px),1fr));
-  gap:clamp(12px,2vw,18px);
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:clamp(12px,1.5vw,20px);
 }
 
 /* ── LEADERBOARD TABLE ── */
@@ -264,8 +265,8 @@ select.fc{
 /* ── PLAYER CARDS ── */
 .player-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(clamp(260px,35vw,320px),1fr));
-  gap:clamp(12px,2vw,16px);
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:clamp(12px,1.5vw,18px);
 }
 
 .player-card{
@@ -352,7 +353,6 @@ select.fc{
 }
 .mbg.open{opacity:1;pointer-events:all}
 
-/* auth card */
 .auth-modal{
   background:var(--s1);border:1px solid var(--b);
   border-radius:14px;overflow:hidden;
@@ -420,7 +420,7 @@ select.fc{
 }
 .auth-cancel:hover{border-color:rgba(255,255,255,.2);color:var(--tx)}
 
-/* ── ADMIN PANEL (post-auth) ── */
+/* ── ADMIN PANEL ── */
 .admin-panel{
   background:var(--s1);border:1px solid var(--b);
   border-radius:14px;overflow:hidden;
@@ -459,7 +459,6 @@ select.fc{
 
 .admin-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px}
 
-/* admin section */
 .admin-section{
   background:var(--bg);border:1px solid var(--b);
   border-radius:10px;overflow:hidden;
@@ -598,13 +597,9 @@ select.fc{
 
 /* ── MOBILE ── */
 @media(max-width:640px){
-  .hero{padding:20px 16px 18px}
   .hero-h1{font-size:34px}
   .hero-top{gap:12px}
   .hero-search-wrap{width:100%}
-  .main{padding:16px 16px 60px}
-  .alert{margin:10px 16px 0}
-  .filters{gap:5px}
   .fc-search{max-width:none;flex:1}
   .lb-grid{grid-template-columns:1fr}
   .player-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
@@ -614,16 +609,10 @@ select.fc{
   .edit-actions{flex-direction:column-reverse}
   .admin-section-body{padding:10px 12px}
 }
-
 @media(max-width:480px){
   .player-grid{grid-template-columns:1fr}
   .auth-body{padding:20px 16px}
 }
-
-@media(max-width:360px){
-  .hero-h1{font-size:28px}
-}
-
 @media(hover:none) and (pointer:coarse){
   .lb-row:hover{background:transparent}
   .lb-row.top:hover{background:rgba(232,0,29,.04)}
@@ -634,115 +623,118 @@ select.fc{
 </head>
 <body>
 
-<!-- ── STATUS BAR ── -->
-<div class="sbar">
-  <div class="sbar-left">
-    <span class="sbar-sync" id="last-sync"></span>
-    <div class="live-chip" id="live-chip">
-      <div class="ldot"></div>
-      <span id="live-lbl">Offline</span>
+<!-- STATUS BAR -->
+<div class="site-wrap">
+  <div class="sbar">
+    <div class="sbar-left">
+      <span class="sbar-sync" id="last-sync"></span>
+      <div class="live-chip" id="live-chip">
+        <div class="ldot"></div>
+        <span id="live-lbl">Offline</span>
+      </div>
     </div>
+    <button class="admin-btn" id="admin-btn">Admin</button>
   </div>
-  <button class="admin-btn" id="admin-btn">Admin</button>
 </div>
 
-<!-- ── HERO ── -->
+<!-- HERO -->
 <div class="hero">
-  <div class="hero-top">
-    <div class="hero-left">
-      <div class="hero-eyebrow">Season 11 · Player Database</div>
-      <div class="hero-h1"><em>RPL</em> League Database</div>
-      <div class="hero-sub">
-        Live <span class="hdot"></span>
-        League Leaders &amp; Player Stats <span class="hdot"></span>
-        Season 11
+  <div class="site-wrap">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div class="hero-left">
+          <div class="hero-eyebrow">Season 11 · Player Database</div>
+          <div class="hero-h1"><em>RPL</em> League Database</div>
+          <div class="hero-sub">
+            Live <span class="hdot"></span>
+            League Leaders &amp; Player Stats <span class="hdot"></span>
+            Season 11
+          </div>
+        </div>
+        <div class="hero-search-wrap">
+          <svg class="hero-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/>
+            <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <input class="hero-search" id="search" placeholder="Search player…" autocomplete="off" spellcheck="false">
+        </div>
       </div>
-    </div>
-    <div class="hero-search-wrap">
-      <svg class="hero-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/>
-        <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-      </svg>
-      <input class="hero-search" id="search" placeholder="Search player…" autocomplete="off" spellcheck="false">
     </div>
   </div>
 </div>
 
-<div class="alert" id="alert"></div>
+<!-- MAIN -->
+<div class="site-wrap">
+  <div class="alert" id="alert"></div>
+  <div class="main">
 
-<!-- ── MAIN ── -->
-<div class="main">
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="leaders">League Leaders</button>
-    <button class="tab-btn" data-tab="players">Player Cards</button>
-  </div>
-
-  <!-- LEADERS VIEW -->
-  <div class="view active" id="view-leaders">
-    <div class="sec-hd">
-      <div class="sec-hd-top">
-        <span class="sec-title">League Leaders</span>
-        <span class="sec-ct" id="leaders-ct">0 players</span>
-        <div class="sec-rule"></div>
-      </div>
-      <div class="filters">
-        <input class="fc fc-search" id="f-leader-search" placeholder="Filter player…" autocomplete="off" spellcheck="false">
-        <select class="fc" id="f-stat">
-          <option value="">All categories</option>
-          <option value="PPG">Points (PPG)</option>
-          <option value="APG">Assists (APG)</option>
-          <option value="RPG">Rebounds (RPG)</option>
-          <option value="SPG">Steals (SPG)</option>
-          <option value="BPG">Blocks (BPG)</option>
-          <option value="TOPG">Turnovers (TOPG)</option>
-          <option value="FG">FG%</option>
-          <option value="3PT">3PT%</option>
-          <option value="FT">FT%</option>
-        </select>
-      </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="leaders">League Leaders</button>
+      <button class="tab-btn" data-tab="players">Player Cards</button>
     </div>
-    <div class="lb-grid" id="lb-grid"></div>
-  </div>
 
-  <!-- PLAYERS VIEW -->
-  <div class="view" id="view-players">
-    <div class="sec-hd">
-      <div class="sec-hd-top">
-        <span class="sec-title">Player Cards</span>
-        <span class="sec-ct" id="players-ct">0 players</span>
-        <div class="sec-rule"></div>
+    <!-- LEADERS -->
+    <div class="view active" id="view-leaders">
+      <div class="sec-hd">
+        <div class="sec-hd-top">
+          <span class="sec-title">League Leaders</span>
+          <span class="sec-ct" id="leaders-ct">0 players</span>
+          <div class="sec-rule"></div>
+        </div>
+        <div class="filters">
+          <input class="fc fc-search" id="f-leader-search" placeholder="Filter player…" autocomplete="off" spellcheck="false">
+          <select class="fc" id="f-stat">
+            <option value="">All categories</option>
+            <option value="PPG">Points (PPG)</option>
+            <option value="APG">Assists (APG)</option>
+            <option value="RPG">Rebounds (RPG)</option>
+            <option value="SPG">Steals (SPG)</option>
+            <option value="BPG">Blocks (BPG)</option>
+            <option value="TOPG">Turnovers (TOPG)</option>
+            <option value="FG">FG%</option>
+            <option value="3PT">3PT%</option>
+            <option value="FT">FT%</option>
+          </select>
+        </div>
       </div>
-      <div class="filters">
-        <input class="fc fc-search" id="f-player-search" placeholder="Search player…" autocomplete="off" spellcheck="false">
-        <select class="fc" id="f-sort">
-          <option value="PPG">Sort: PPG</option>
-          <option value="APG">Sort: APG</option>
-          <option value="RPG">Sort: RPG</option>
-          <option value="SPG">Sort: SPG</option>
-          <option value="BPG">Sort: BPG</option>
-          <option value="GP">Sort: GP</option>
-        </select>
-      </div>
+      <div class="lb-grid" id="lb-grid"></div>
     </div>
-    <div class="player-grid" id="player-grid"></div>
-  </div>
 
+    <!-- PLAYERS -->
+    <div class="view" id="view-players">
+      <div class="sec-hd">
+        <div class="sec-hd-top">
+          <span class="sec-title">Player Cards</span>
+          <span class="sec-ct" id="players-ct">0 players</span>
+          <div class="sec-rule"></div>
+        </div>
+        <div class="filters">
+          <input class="fc fc-search" id="f-player-search" placeholder="Search player…" autocomplete="off" spellcheck="false">
+          <select class="fc" id="f-sort">
+            <option value="PPG">Sort: PPG</option>
+            <option value="APG">Sort: APG</option>
+            <option value="RPG">Sort: RPG</option>
+            <option value="SPG">Sort: SPG</option>
+            <option value="BPG">Sort: BPG</option>
+            <option value="GP">Sort: GP</option>
+          </select>
+        </div>
+      </div>
+      <div class="player-grid" id="player-grid"></div>
+    </div>
+
+  </div>
 </div>
 
-<!-- ── TOASTS ── -->
+<!-- TOASTS -->
 <div id="toasts"></div>
 
-<!-- ── AUTH / ADMIN MODAL ── -->
+<!-- AUTH / ADMIN MODAL -->
 <div class="mbg" id="modal-bg" role="dialog" aria-modal="true" aria-label="Admin">
-
-  <!-- Auth card -->
   <div class="auth-modal" id="auth-modal">
     <div class="auth-body">
       <div class="auth-title">Admin Access</div>
       <div class="auth-sub">Enter your password to manage player statistics.</div>
-
       <div class="auth-error" id="auth-error">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <circle cx="7" cy="7" r="6" stroke="#f87171" stroke-width="1.3"/>
@@ -751,23 +743,20 @@ select.fc{
         </svg>
         <span id="auth-error-text">Incorrect password. Try again.</span>
       </div>
-
       <div class="auth-field">
         <input class="auth-input" type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
         <button class="auth-eye" id="auth-eye" type="button" aria-label="Toggle visibility">
-          <svg id="eye-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/>
             <circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/>
           </svg>
         </button>
       </div>
-
       <button class="auth-submit" id="auth-submit">Unlock Admin Panel</button>
       <button class="auth-cancel" id="auth-cancel">Cancel</button>
     </div>
   </div>
 
-  <!-- Admin panel (post-auth) -->
   <div class="admin-panel" id="admin-panel" style="display:none">
     <div class="admin-panel-hd">
       <div class="admin-hd-left">
@@ -781,8 +770,6 @@ select.fc{
       </button>
     </div>
     <div class="admin-body">
-
-      <!-- Edit section -->
       <div class="admin-section">
         <div class="admin-section-hd">
           <div class="admin-section-icon blue">
@@ -803,8 +790,6 @@ select.fc{
           <div class="panel-msg" id="edit-search-msg"></div>
         </div>
       </div>
-
-      <!-- Remove section -->
       <div class="admin-section">
         <div class="admin-section-hd">
           <div class="admin-section-icon amber">
@@ -825,8 +810,6 @@ select.fc{
           <div class="panel-msg" id="remove-msg"></div>
         </div>
       </div>
-
-      <!-- Danger zone -->
       <div class="admin-section">
         <div class="admin-section-hd">
           <div class="admin-section-icon red">
@@ -846,12 +829,11 @@ select.fc{
           <div class="panel-msg" id="reset-msg"></div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- ── EDIT STATS MODAL ── -->
+<!-- EDIT STATS MODAL -->
 <div class="edit-mbg" id="edit-modal-bg" role="dialog" aria-modal="true" aria-label="Edit Player">
   <div class="edit-modal">
     <div class="edit-mhd">
@@ -889,36 +871,25 @@ const LEADERBOARDS = [
   {title:'3-Point Percentage',   stat:'3PT%', key:'3PT',  pct:true, asc:false},
   {title:'Free Throw Percentage',stat:'FT%',  key:'FT',   pct:true, asc:false},
 ];
-
 const RANK_COLORS = ['gold','silver','bronze','','','','','','',''];
-
 const STAT_FIELDS = [
-  {key:'GP',  label:'GP'  },{key:'PPG', label:'PPG' },{key:'APG', label:'APG' },
-  {key:'RPG', label:'RPG' },{key:'SPG', label:'SPG' },{key:'BPG', label:'BPG' },
-  {key:'TOPG',label:'TOPG'},{key:'FTPG',label:'FTPG'},{key:'FG',  label:'FG%' },
-  {key:'FT',  label:'FT%' },{key:'3PT', label:'3PT%'},{key:'2PT', label:'2PT%'},
+  {key:'GP',label:'GP'},{key:'PPG',label:'PPG'},{key:'APG',label:'APG'},
+  {key:'RPG',label:'RPG'},{key:'SPG',label:'SPG'},{key:'BPG',label:'BPG'},
+  {key:'TOPG',label:'TOPG'},{key:'FTPG',label:'FTPG'},{key:'FG',label:'FG%'},
+  {key:'FT',label:'FT%'},{key:'3PT',label:'3PT%'},{key:'2PT',label:'2PT%'},
 ];
-
 const PLAYER_STATS = [
   {label:'PPG',key:'PPG',pct:false},{label:'APG',key:'APG',pct:false},
   {label:'RPG',key:'RPG',pct:false},{label:'SPG',key:'SPG',pct:false},
   {label:'BPG',key:'BPG',pct:false},{label:'TOPG',key:'TOPG',pct:false},
-  {label:'FG%',key:'FG',pct:true}, {label:'3PT%',key:'3PT',pct:true},
+  {label:'FG%',key:'FG',pct:true},{label:'3PT%',key:'3PT',pct:true},
   {label:'FT%',key:'FT',pct:true},
 ];
 
 function fmt(val,pct){const n=parseFloat(val)||0;const s=n%1===0?n.toString():n.toFixed(1);return pct?s+'%':s}
 function timeAgo(iso){if(!iso)return'';const s=Math.floor((Date.now()-new Date(iso))/1000);if(s<60)return`${s}s ago`;if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`}
-
-function toast(msg,c='red',dur=5000){
-  const t=Object.assign(document.createElement('div'),{className:`toast ${c}`,textContent:msg});
-  document.getElementById('toasts').prepend(t);
-  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),240)},dur);
-}
-function setLive(v){
-  const c=document.getElementById('live-chip'),l=document.getElementById('live-lbl');
-  c.classList.toggle('on',v);l.textContent=v?'Live':'Offline';
-}
+function toast(msg,c='red',dur=5000){const t=Object.assign(document.createElement('div'),{className:`toast ${c}`,textContent:msg});document.getElementById('toasts').prepend(t);setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),240)},dur)}
+function setLive(v){const c=document.getElementById('live-chip'),l=document.getElementById('live-lbl');c.classList.toggle('on',v);l.textContent=v?'Live':'Offline'}
 function setSync(iso){document.getElementById('last-sync').textContent=iso?`Synced ${timeAgo(iso)}`:''}
 
 async function fetchData(){
@@ -926,188 +897,64 @@ async function fetchData(){
     const res=await fetch('/api/averages',{cache:'no-store'});
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const json=await res.json();
-    allPlayers=json.players||[];
-    lastUpdatedAt=json.updatedAt;
-    setLive(true);
-    setSync(lastUpdatedAt||new Date().toISOString());
-    document.getElementById('alert').classList.remove('on');
-    render();
+    allPlayers=json.players||[];lastUpdatedAt=json.updatedAt;
+    setLive(true);setSync(lastUpdatedAt||new Date().toISOString());
+    document.getElementById('alert').classList.remove('on');render();
   }catch(e){
-    console.error('Fetch error:',e);
-    setLive(false);
-    if(allPlayers.length===0){
-      const a=document.getElementById('alert');
-      a.textContent=`⚠ Database server unreachable — showing last known data. (${e.message})`;
-      a.classList.add('on');
-    }
+    console.error('Fetch error:',e);setLive(false);
+    if(allPlayers.length===0){const a=document.getElementById('alert');a.textContent=`⚠ Database server unreachable — showing last known data. (${e.message})`;a.classList.add('on')}
     render();
   }
 }
-
 function render(){buildLeaderboards();buildPlayerCards()}
 
-/* ── LEADERBOARDS ── */
 function buildLeaderboards(){
   const grid=document.getElementById('lb-grid');
   const q=document.getElementById('f-leader-search').value.trim().toLowerCase();
   const statFilter=document.getElementById('f-stat').value;
   const players=allPlayers;
-
-  document.getElementById('leaders-ct').textContent=
-    `${players.filter(p=>p.stats&&p.stats.GP>0).length} player${players.filter(p=>p.stats&&p.stats.GP>0).length!==1?'s':''}`;
-
+  const active=players.filter(p=>p.stats&&p.stats.GP>0);
+  document.getElementById('leaders-ct').textContent=`${active.length} player${active.length!==1?'s':''}`;
   const boards=statFilter?LEADERBOARDS.filter(lb=>lb.key===statFilter):LEADERBOARDS;
-
-  if(!players.length){
-    grid.innerHTML=emptyHTML('No Data Yet','Stats will appear after the first game is committed.');
-    return;
-  }
-
+  if(!players.length){grid.innerHTML=emptyHTML('No Data Yet','Stats will appear after the first game is committed.');return}
   grid.innerHTML=boards.map(lb=>{
-    const sorted=[...players]
-      .filter(p=>p.stats&&p.stats.GP>0)
-      .sort((a,b)=>{
-        const av=a.stats[lb.key]??0,bv=b.stats[lb.key]??0;
-        return lb.asc?av-bv:bv-av;
-      }).slice(0,10);
+    const sorted=[...players].filter(p=>p.stats&&p.stats.GP>0).sort((a,b)=>{const av=a.stats[lb.key]??0,bv=b.stats[lb.key]??0;return lb.asc?av-bv:bv-av}).slice(0,10);
     if(!sorted.length)return'';
-
-    const rows=sorted.map((p,i)=>{
-      const match=q&&p.username.toLowerCase().includes(q);
-      return`<div class="lb-row ${i===0?'top':''}">
-        <span class="lb-rank ${RANK_COLORS[i]||''}">${i+1}</span>
-        <span class="lb-name ${match?'search-match':''}">${p.username}</span>
-        <span class="lb-gp">${p.stats.GP}</span>
-        <span class="lb-val">${fmt(p.stats[lb.key],lb.pct)}</span>
-      </div>`;
-    }).join('');
-
-    return`<div class="lb-table">
-      <div class="lb-table-hd">
-        <div class="lb-table-left">
-          <div class="lb-strip"></div>
-          <span class="lb-table-title">${lb.title}</span>
-        </div>
-        <span class="lb-table-stat">${lb.stat}</span>
-      </div>
-      <div class="lb-col-hd">
-        <span>#</span><span>Player</span><span>GP</span><span>${lb.stat}</span>
-      </div>
-      ${rows}
-    </div>`;
+    const rows=sorted.map((p,i)=>{const match=q&&p.username.toLowerCase().includes(q);return`<div class="lb-row ${i===0?'top':''}"><span class="lb-rank ${RANK_COLORS[i]||''}">${i+1}</span><span class="lb-name ${match?'search-match':''}">${p.username}</span><span class="lb-gp">${p.stats.GP}</span><span class="lb-val">${fmt(p.stats[lb.key],lb.pct)}</span></div>`}).join('');
+    return`<div class="lb-table"><div class="lb-table-hd"><div class="lb-table-left"><div class="lb-strip"></div><span class="lb-table-title">${lb.title}</span></div><span class="lb-table-stat">${lb.stat}</span></div><div class="lb-col-hd"><span>#</span><span>Player</span><span>GP</span><span>${lb.stat}</span></div>${rows}</div>`;
   }).join('');
 }
 
-/* ── PLAYER CARDS ── */
 function buildPlayerCards(){
   const grid=document.getElementById('player-grid');
   const q=document.getElementById('f-player-search').value.trim().toLowerCase();
   const sortKey=document.getElementById('f-sort').value;
-
   let players=allPlayers.filter(p=>p.stats&&p.stats.GP>0);
   if(q)players=players.filter(p=>p.username.toLowerCase().includes(q));
   players.sort((a,b)=>(b.stats[sortKey]??0)-(a.stats[sortKey]??0));
-
-  document.getElementById('players-ct').textContent=
-    `${players.length} player${players.length!==1?'s':''}`;
-
-  if(!players.length){
-    grid.innerHTML=emptyHTML(q?'No Results':'No Data Yet',
-      q?`No players matching "${q}"`:'Stats will appear after the first game.');
-    return;
-  }
-
+  document.getElementById('players-ct').textContent=`${players.length} player${players.length!==1?'s':''}`;
+  if(!players.length){grid.innerHTML=emptyHTML(q?'No Results':'No Data Yet',q?`No players matching "${q}"`:'Stats will appear after the first game.');return}
   grid.innerHTML=players.map(p=>{
-    const cells=PLAYER_STATS.map(s=>`
-      <div class="player-stat-cell">
-        <div class="player-stat-label">${s.label}</div>
-        <div class="player-stat-val">${fmt(p.stats[s.key],s.pct)}</div>
-      </div>`).join('');
-    return`<div class="player-card">
-      <div class="player-card-hd">
-        <span class="player-card-name">${p.username}</span>
-        <span class="player-card-gp">${p.stats.GP} GP</span>
-      </div>
-      <div class="player-stat-grid">${cells}</div>
-    </div>`;
+    const cells=PLAYER_STATS.map(s=>`<div class="player-stat-cell"><div class="player-stat-label">${s.label}</div><div class="player-stat-val">${fmt(p.stats[s.key],s.pct)}</div></div>`).join('');
+    return`<div class="player-card"><div class="player-card-hd"><span class="player-card-name">${p.username}</span><span class="player-card-gp">${p.stats.GP} GP</span></div><div class="player-stat-grid">${cells}</div></div>`;
   }).join('');
 }
 
-function emptyHTML(title,desc){
-  return`<div class="empty-state">
-    <div class="empty-state-icon">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/>
-        <line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/>
-        <circle cx="11" cy="14.5" r=".8" fill="#52526a"/>
-      </svg>
-    </div>
-    <h3>${title}</h3><p>${desc}</p>
-  </div>`;
-}
+function emptyHTML(title,desc){return`<div class="empty-state"><div class="empty-state-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/><line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="14.5" r=".8" fill="#52526a"/></svg></div><h3>${title}</h3><p>${desc}</p></div>`}
 
-/* ── TABS ── */
-document.querySelectorAll('.tab-btn').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('view-'+tab.dataset.tab).classList.add('active');
-  });
-});
+document.querySelectorAll('.tab-btn').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));tab.classList.add('active');document.getElementById('view-'+tab.dataset.tab).classList.add('active')})});
 
-/* ── SEARCH / FILTERS ── */
-document.getElementById('search').addEventListener('input',e=>{
-  searchQuery=e.target.value;
-  document.getElementById('f-leader-search').value=searchQuery;
-  document.getElementById('f-player-search').value=searchQuery;
-  render();
-});
+document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;document.getElementById('f-leader-search').value=searchQuery;document.getElementById('f-player-search').value=searchQuery;render()});
 document.getElementById('f-leader-search').addEventListener('input',()=>buildLeaderboards());
 document.getElementById('f-player-search').addEventListener('input',()=>buildPlayerCards());
 document.getElementById('f-stat').addEventListener('change',()=>buildLeaderboards());
 document.getElementById('f-sort').addEventListener('change',()=>buildPlayerCards());
 
-/* ── AUTH ── */
-const modalBg=document.getElementById('modal-bg');
-const authModal=document.getElementById('auth-modal');
-const adminPanel=document.getElementById('admin-panel');
-const authPass=document.getElementById('auth-pass');
-const authError=document.getElementById('auth-error');
-const authErrorText=document.getElementById('auth-error-text');
-const authSubmit=document.getElementById('auth-submit');
-const authEye=document.getElementById('auth-eye');
-
+const modalBg=document.getElementById('modal-bg'),authModal=document.getElementById('auth-modal'),adminPanel=document.getElementById('admin-panel'),authPass=document.getElementById('auth-pass'),authError=document.getElementById('auth-error'),authErrorText=document.getElementById('auth-error-text'),authSubmit=document.getElementById('auth-submit'),authEye=document.getElementById('auth-eye');
 function showAuthError(msg){authErrorText.textContent=msg;authError.classList.add('show');authPass.focus()}
 function hideAuthError(){authError.classList.remove('show')}
-
-authEye.addEventListener('click',()=>{
-  const isPass=authPass.type==='password';
-  authPass.type=isPass?'text':'password';
-  authEye.innerHTML=isPass
-    ?`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3" opacity=".4"/><path d="M2 2L16 16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`
-    :`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/></svg>`;
-});
-
-async function attemptAuth(){
-  const pass=authPass.value.trim();
-  if(!pass){showAuthError('Please enter your password.');return}
-  authSubmit.disabled=true;authSubmit.textContent='Verifying…';hideAuthError();
-  try{
-    const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass,username:'__auth_check__'})});
-    const json=await res.json();
-    if(res.status===401||res.status===403||json.error==='Unauthorized'){
-      showAuthError('Incorrect password. Try again.');authPass.value='';
-    }else{
-      adminPassword=pass;isAuthed=true;
-      authModal.style.display='none';adminPanel.style.display='';
-    }
-  }catch(e){
-    adminPassword=pass;isAuthed=true;
-    authModal.style.display='none';adminPanel.style.display='';
-  }finally{authSubmit.disabled=false;authSubmit.textContent='Unlock Admin Panel'}
-}
-
+authEye.addEventListener('click',()=>{const isPass=authPass.type==='password';authPass.type=isPass?'text':'password';authEye.innerHTML=isPass?`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3" opacity=".4"/><path d="M2 2L16 16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`:`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/></svg>`});
+async function attemptAuth(){const pass=authPass.value.trim();if(!pass){showAuthError('Please enter your password.');return}authSubmit.disabled=true;authSubmit.textContent='Verifying…';hideAuthError();try{const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass,username:'__auth_check__'})});const json=await res.json();if(res.status===401||res.status===403||json.error==='Unauthorized'){showAuthError('Incorrect password. Try again.');authPass.value=''}else{adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display=''}}catch(e){adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display=''}finally{authSubmit.disabled=false;authSubmit.textContent='Unlock Admin Panel'}}
 authSubmit.addEventListener('click',attemptAuth);
 authPass.addEventListener('keydown',e=>{if(e.key==='Enter')attemptAuth()});
 authPass.addEventListener('input',hideAuthError);
@@ -1115,128 +962,32 @@ document.getElementById('auth-cancel').addEventListener('click',closeAdmin);
 document.getElementById('panel-close').addEventListener('click',closeAdmin);
 modalBg.addEventListener('click',e=>{if(e.target===modalBg)closeAdmin()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAdmin();closeEditModal()}});
+document.getElementById('admin-btn').addEventListener('click',()=>{modalBg.classList.add('open');if(!isAuthed){authModal.style.display='';adminPanel.style.display='none';authPass.value='';hideAuthError();setTimeout(()=>authPass.focus(),80)}});
+function closeAdmin(){modalBg.classList.remove('open');isAuthed=false;adminPassword='';authModal.style.display='';adminPanel.style.display='none'}
 
-document.getElementById('admin-btn').addEventListener('click',()=>{
-  modalBg.classList.add('open');
-  if(!isAuthed){
-    authModal.style.display='';adminPanel.style.display='none';
-    authPass.value='';hideAuthError();
-    setTimeout(()=>authPass.focus(),80);
-  }
-});
-
-function closeAdmin(){
-  modalBg.classList.remove('open');
-  isAuthed=false;adminPassword='';
-  authModal.style.display='';adminPanel.style.display='none';
-}
-
-/* ── PANEL MESSAGES ── */
 function showPanelMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className=`panel-msg ${type} show`}
 function clearPanelMsg(id){const el=document.getElementById(id);el.className='panel-msg';el.textContent=''}
 
-/* ── EDIT PLAYER ── */
-const editMbg=document.getElementById('edit-modal-bg');
-const editMsgEl=document.getElementById('edit-msg');
-const editSaveBtn=document.getElementById('edit-save');
-const editStatGrid=document.getElementById('edit-stat-grid');
+const editMbg=document.getElementById('edit-modal-bg'),editMsgEl=document.getElementById('edit-msg'),editSaveBtn=document.getElementById('edit-save'),editStatGrid=document.getElementById('edit-stat-grid');
 let editingUsername=null;
-
-function openEditModal(player){
-  editingUsername=player.username;
-  document.getElementById('edit-panel-title').textContent=`Edit — ${player.username}`;
-  editStatGrid.innerHTML=STAT_FIELDS.map(f=>`
-    <div class="edit-stat-field">
-      <label class="edit-stat-label" for="es-${f.key}">${f.label}</label>
-      <input class="edit-stat-input" id="es-${f.key}" type="number" step="any" min="0"
-             value="${player.stats[f.key]??0}" data-key="${f.key}">
-    </div>`).join('');
-  editMsgEl.className='edit-msg';editMsgEl.textContent='';
-  editMbg.classList.add('open');
-  setTimeout(()=>editStatGrid.querySelector('.edit-stat-input')?.focus(),80);
-}
+function openEditModal(player){editingUsername=player.username;document.getElementById('edit-panel-title').textContent=`Edit — ${player.username}`;editStatGrid.innerHTML=STAT_FIELDS.map(f=>`<div class="edit-stat-field"><label class="edit-stat-label" for="es-${f.key}">${f.label}</label><input class="edit-stat-input" id="es-${f.key}" type="number" step="any" min="0" value="${player.stats[f.key]??0}" data-key="${f.key}"></div>`).join('');editMsgEl.className='edit-msg';editMsgEl.textContent='';editMbg.classList.add('open');setTimeout(()=>editStatGrid.querySelector('.edit-stat-input')?.focus(),80)}
 function closeEditModal(){editMbg.classList.remove('open');editingUsername=null}
 
-const editUsernameInput=document.getElementById('edit-username-search');
-const editLoadBtn=document.getElementById('modal-edit-load');
+const editUsernameInput=document.getElementById('edit-username-search'),editLoadBtn=document.getElementById('modal-edit-load');
 editUsernameInput.addEventListener('keydown',e=>{if(e.key==='Enter')editLoadBtn.click()});
-editLoadBtn.addEventListener('click',()=>{
-  clearPanelMsg('edit-search-msg');
-  const username=editUsernameInput.value.trim();
-  if(!username){showPanelMsg('edit-search-msg','Enter a username to edit.','error');return}
-  const player=allPlayers.find(p=>p.username.toLowerCase()===username.toLowerCase());
-  if(!player){showPanelMsg('edit-search-msg',`Player "${username}" not found.`,'error');return}
-  openEditModal(player);
-});
-
+editLoadBtn.addEventListener('click',()=>{clearPanelMsg('edit-search-msg');const username=editUsernameInput.value.trim();if(!username){showPanelMsg('edit-search-msg','Enter a username to edit.','error');return}const player=allPlayers.find(p=>p.username.toLowerCase()===username.toLowerCase());if(!player){showPanelMsg('edit-search-msg',`Player "${username}" not found.`,'error');return}openEditModal(player)});
 document.getElementById('edit-close').addEventListener('click',closeEditModal);
 document.getElementById('edit-cancel').addEventListener('click',closeEditModal);
 editMbg.addEventListener('click',e=>{if(e.target===editMbg)closeEditModal()});
+editSaveBtn.addEventListener('click',async()=>{if(!adminPassword){editMsgEl.textContent='Session expired.';editMsgEl.className='edit-msg error show';return}const stats={};editStatGrid.querySelectorAll('.edit-stat-input').forEach(inp=>{stats[inp.dataset.key]=parseFloat(inp.value)||0});editSaveBtn.disabled=true;editSaveBtn.textContent='Saving…';editMsgEl.className='edit-msg';try{const res=await fetch('/api/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,username:editingUsername,stats})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');const idx=allPlayers.findIndex(p=>p.username===json.player.username);if(idx!==-1)allPlayers[idx]=json.player;render();toast(`${json.player.username} updated`,'green',4000);editMsgEl.textContent=`✓ ${json.player.username} updated successfully.`;editMsgEl.className='edit-msg success show';setTimeout(closeEditModal,1400)}catch(e){editMsgEl.textContent=e.message||'Save failed.';editMsgEl.className='edit-msg error show'}finally{editSaveBtn.disabled=false;editSaveBtn.textContent='Save Changes'}});
 
-editSaveBtn.addEventListener('click',async()=>{
-  if(!adminPassword){editMsgEl.textContent='Session expired.';editMsgEl.className='edit-msg error show';return}
-  const stats={};
-  editStatGrid.querySelectorAll('.edit-stat-input').forEach(inp=>{stats[inp.dataset.key]=parseFloat(inp.value)||0});
-  editSaveBtn.disabled=true;editSaveBtn.textContent='Saving…';editMsgEl.className='edit-msg';
-  try{
-    const res=await fetch('/api/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,username:editingUsername,stats})});
-    const json=await res.json();
-    if(!res.ok)throw new Error(json.error||'Failed');
-    const idx=allPlayers.findIndex(p=>p.username===json.player.username);
-    if(idx!==-1)allPlayers[idx]=json.player;
-    render();
-    toast(`${json.player.username} updated`,'green',4000);
-    editMsgEl.textContent=`✓ ${json.player.username} updated successfully.`;
-    editMsgEl.className='edit-msg success show';
-    setTimeout(closeEditModal,1400);
-  }catch(e){
-    editMsgEl.textContent=e.message||'Save failed.';editMsgEl.className='edit-msg error show';
-  }finally{editSaveBtn.disabled=false;editSaveBtn.textContent='Save Changes'}
-});
-
-/* ── REMOVE ── */
-const removeUsernameInput=document.getElementById('remove-username');
-const removeBtn=document.getElementById('modal-remove');
+const removeUsernameInput=document.getElementById('remove-username'),removeBtn=document.getElementById('modal-remove');
 removeUsernameInput.addEventListener('keydown',e=>{if(e.key==='Enter')removeBtn.click()});
-removeBtn.addEventListener('click',async()=>{
-  clearPanelMsg('remove-msg');
-  const username=removeUsernameInput.value.trim();
-  if(!username){showPanelMsg('remove-msg','Enter a username to remove.','error');return}
-  removeBtn.disabled=true;removeBtn.textContent='Removing…';
-  try{
-    const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,username})});
-    const json=await res.json();
-    if(!res.ok)throw new Error(json.error||'Failed');
-    showPanelMsg('remove-msg',`✓ "${json.deleted}" removed successfully.`,'success');
-    allPlayers=allPlayers.filter(p=>p.username.toLowerCase()!==json.deleted.toLowerCase());
-    removeUsernameInput.value='';
-    render();
-    toast(`${json.deleted} removed`,'amber',4000);
-  }catch(e){
-    showPanelMsg('remove-msg',e.message||'Player not found or error occurred.','error');
-  }finally{removeBtn.disabled=false;removeBtn.textContent='Remove'}
-});
+removeBtn.addEventListener('click',async()=>{clearPanelMsg('remove-msg');const username=removeUsernameInput.value.trim();if(!username){showPanelMsg('remove-msg','Enter a username to remove.','error');return}removeBtn.disabled=true;removeBtn.textContent='Removing…';try{const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,username})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('remove-msg',`✓ "${json.deleted}" removed successfully.`,'success');allPlayers=allPlayers.filter(p=>p.username.toLowerCase()!==json.deleted.toLowerCase());removeUsernameInput.value='';render();toast(`${json.deleted} removed`,'amber',4000)}catch(e){showPanelMsg('remove-msg',e.message||'Player not found or error occurred.','error')}finally{removeBtn.disabled=false;removeBtn.textContent='Remove'}});
 
-/* ── RESET ── */
 const resetBtn=document.getElementById('modal-reset');
-resetBtn.addEventListener('click',async()=>{
-  clearPanelMsg('reset-msg');
-  if(!confirm('⚠️ This will permanently delete ALL player stats. This cannot be undone.\n\nAre you absolutely sure?'))return;
-  resetBtn.disabled=true;resetBtn.textContent='Resetting…';
-  try{
-    const res=await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
-    const json=await res.json();
-    if(!res.ok)throw new Error(json.error||'Failed');
-    showPanelMsg('reset-msg',`✓ Reset complete. ${json.deleted} records deleted.`,'success');
-    allPlayers=[];render();
-    toast('All stats reset','amber',5000);
-    setTimeout(closeAdmin,2500);
-  }catch(e){
-    showPanelMsg('reset-msg','Reset failed. Check your session.','error');
-  }finally{resetBtn.disabled=false;resetBtn.textContent='Reset All Stats & Start New Season'}
-});
+resetBtn.addEventListener('click',async()=>{clearPanelMsg('reset-msg');if(!confirm('⚠️ This will permanently delete ALL player stats. This cannot be undone.\n\nAre you absolutely sure?'))return;resetBtn.disabled=true;resetBtn.textContent='Resetting…';try{const res=await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('reset-msg',`✓ Reset complete. ${json.deleted} records deleted.`,'success');allPlayers=[];render();toast('All stats reset','amber',5000);setTimeout(closeAdmin,2500)}catch(e){showPanelMsg('reset-msg','Reset failed. Check your session.','error')}finally{resetBtn.disabled=false;resetBtn.textContent='Reset All Stats & Start New Season'}});
 
-/* ── INIT ── */
 fetchData();
 setInterval(()=>{fetchData();if(lastUpdatedAt)setSync(lastUpdatedAt)},POLL);
 </script>
