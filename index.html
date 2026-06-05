@@ -2,30 +2,30 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RPL Database</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --red:      #e8001d;
-    --red-dim:  rgba(232,0,29,.12);
-    --bg:       #07070c;
-    --surface:  #0f0f16;
-    --surface2: #161620;
-    --surface3: #1c1c28;
-    --border:   rgba(255,255,255,.08);
-    --border2:  rgba(255,255,255,.04);
-    --muted:    #56566a;
-    --muted2:   #3a3a4e;
-    --text:     #e0e0f0;
-    --green:    #22c55e;
-    --green-dim:rgba(34,197,94,.12);
-    --amber:    #f59e0b;
-    --amber-dim:rgba(245,158,11,.12);
-    --blue:     #60a5fa;
-    --blue-dim: rgba(96,165,250,.12);
-    --win:      #4ade80;
-    --lose:     #f87171;
+    --red:       #e8001d;
+    --red-dim:   rgba(232,0,29,.1);
+    --red-glow:  rgba(232,0,29,.25);
+    --bg:        #060609;
+    --surface:   #0d0d14;
+    --surface2:  #13131c;
+    --surface3:  #1a1a26;
+    --border:    rgba(255,255,255,.07);
+    --border2:   rgba(255,255,255,.04);
+    --muted:     #52526a;
+    --muted2:    #363650;
+    --text:      #dcdcf0;
+    --text2:     #8888aa;
+    --green:     #22c55e;
+    --amber:     #f59e0b;
+    --blue:      #60a5fa;
+    --gold:      #f59e0b;
+    --silver:    #94a3b8;
+    --bronze:    #b45309;
   }
 
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -34,106 +34,115 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
+  /* subtle noise texture overlay */
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+    opacity:.4;
+  }
+
   /* ── NAV ── */
   nav {
     position: sticky; top:0; z-index:100;
-    height: 52px;
+    height: 56px;
     display: flex; align-items:center; justify-content:space-between;
-    padding: 0 20px;
-    background: rgba(7,7,12,.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    padding: 0 clamp(16px, 4vw, 28px);
+    background: rgba(6,6,9,.9);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-bottom: 1px solid var(--border);
   }
 
-  .nav-left { display:flex; align-items:center; gap:12px; }
+  .nav-left { display:flex; align-items:center; gap:14px; }
 
   .nav-logo {
-    width:28px; height:28px; border-radius:6px;
+    width:30px; height:30px; border-radius:7px;
     background: var(--red);
     display:flex; align-items:center; justify-content:center;
-    font-family:'Bebas Neue',sans-serif; font-size:15px; color:#fff;
+    font-family:'Bebas Neue',sans-serif; font-size:16px; color:#fff;
     letter-spacing:.02em; flex-shrink:0;
+    box-shadow: 0 0 14px rgba(232,0,29,.35);
   }
 
-  .nav-title {
+  .nav-brand {
     font-family:'Bebas Neue',sans-serif;
-    font-size:17px; letter-spacing:.08em; color:#fff;
+    font-size:18px; letter-spacing:.1em; color:#fff;
   }
-  .nav-title em { color:var(--red); font-style:normal; }
+  .nav-brand em { color:var(--red); font-style:normal; }
 
-  .nav-pill {
-    font-size:10px; font-weight:600; letter-spacing:.08em;
+  .season-badge {
+    font-size:10px; font-weight:600; letter-spacing:.1em;
     color:var(--muted); text-transform:uppercase;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius:20px; padding:3px 9px;
+    border-radius:100px; padding:3px 10px;
     display:none;
   }
-  @media (min-width:480px) { .nav-pill { display:block; } }
+  @media (min-width:480px) { .season-badge { display:block; } }
 
-  .nav-right { display:flex; align-items:center; gap:12px; }
+  .nav-right { display:flex; align-items:center; gap:14px; }
 
   .sync-label { font-size:11px; color:var(--muted); display:none; }
-  @media (min-width:600px) { .sync-label { display:block; } }
+  @media (min-width:620px) { .sync-label { display:block; } }
 
   .live-pill {
     display:flex; align-items:center; gap:5px;
-    font-size:10px; font-weight:700; letter-spacing:.1em;
+    font-size:10px; font-weight:700; letter-spacing:.12em;
     text-transform:uppercase; color:var(--muted);
   }
   .live-pill.live { color:var(--green); }
-  .live-dot {
-    width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0;
-  }
-  .live-pill.live .live-dot { background:var(--green); animation:pulse 1.8s ease infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+  .live-pill.live .live-dot { background:var(--green); animation:livePulse 2s ease infinite; }
+  @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.25;transform:scale(.5)} }
 
   .admin-btn {
     background: none;
     border: 1px solid var(--border);
-    border-radius: 6px; padding: 5px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: .06em; text-transform: uppercase;
+    border-radius: 7px; padding: 6px 14px;
+    font-family:'DM Sans',sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
     color: var(--muted); cursor: pointer;
-    transition: border-color .2s, color .2s;
+    transition: border-color .25s, color .25s, background .25s;
     white-space: nowrap;
   }
-  .admin-btn:hover { border-color: rgba(232,0,29,.4); color: var(--text); }
+  .admin-btn:hover { border-color: var(--red-glow); color:var(--text); background:var(--red-dim); }
 
   /* ── PAGE ── */
-  .page { max-width:1340px; margin:0 auto; padding:0 16px 80px; }
+  .page { max-width:1380px; margin:0 auto; padding:0 clamp(14px,4vw,28px) 100px; position:relative; z-index:1; }
 
   /* ── HERO ── */
   .hero {
-    padding: 24px 0 20px;
+    padding: clamp(20px,4vw,32px) 0 clamp(16px,3vw,24px);
     display:flex; align-items:flex-start; justify-content:space-between;
     gap:16px;
     border-bottom: 1px solid var(--border2);
-    margin-bottom:20px;
+    margin-bottom:clamp(16px,3vw,24px);
     flex-wrap:wrap;
   }
 
   .hero-title {
     font-family:'Bebas Neue',sans-serif;
-    font-size:28px; letter-spacing:.04em; color:#fff; line-height:1;
+    font-size: clamp(26px,5vw,34px);
+    letter-spacing:.05em; color:#fff; line-height:1;
   }
   .hero-title em { color:var(--red); font-style:normal; }
-  .hero-sub { font-size:11px; color:var(--muted); margin-top:5px; letter-spacing:.02em; }
+  .hero-sub { font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:.03em; }
 
   /* ── SEARCH ── */
-  .search-wrap { position:relative; width:240px; flex-shrink:0; }
+  .search-wrap { position:relative; width:clamp(180px,30vw,260px); flex-shrink:0; }
+  @media (max-width:680px) { .search-wrap { width:100%; } }
+  @media (max-width:680px) { .hero { flex-direction:column; gap:14px; } }
 
   .search-icon {
-    position:absolute; left:11px; top:50%;
+    position:absolute; left:12px; top:50%;
     transform:translateY(-50%); pointer-events:none;
     color:var(--muted);
   }
@@ -142,19 +151,22 @@
     width:100%;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 12px 9px 34px;
+    border-radius: 9px;
+    padding: 10px 14px 10px 36px;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px; outline:none;
-    transition: border-color .2s;
+    font-family:'DM Sans',sans-serif;
+    font-size:13px; outline:none;
+    transition: border-color .2s, box-shadow .2s;
   }
   .search-input::placeholder { color:var(--muted); }
-  .search-input:focus { border-color: rgba(232,0,29,.35); }
+  .search-input:focus {
+    border-color: rgba(232,0,29,.4);
+    box-shadow: 0 0 0 3px rgba(232,0,29,.08);
+  }
 
   /* ── TABS ── */
   .tabs {
-    display:flex; gap:2px; margin-bottom:20px;
+    display:flex; gap:2px; margin-bottom:clamp(16px,3vw,24px);
     border-bottom: 1px solid var(--border);
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
@@ -165,10 +177,10 @@
   .tab {
     background:none; border:none;
     border-bottom: 2px solid transparent;
-    padding: 10px 18px; margin-bottom:-1px;
-    font-family:'Inter',sans-serif;
-    font-size:12px; font-weight:600;
-    letter-spacing:.06em; text-transform:uppercase;
+    padding: 10px 20px; margin-bottom:-1px;
+    font-family:'DM Sans',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase;
     color:var(--muted); cursor:pointer;
     transition: color .2s, border-color .2s;
     white-space:nowrap; flex-shrink:0;
@@ -177,56 +189,58 @@
   .tab.active { color:#fff; border-bottom-color:var(--red); }
 
   /* ── VIEWS ── */
-  .view { display:none; }
+  .view { display:none; animation:fadeIn .2s ease; }
   .view.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
   /* ── LEADERBOARD GRID ── */
   .lb-grid {
     display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap:16px;
-    margin-bottom:40px;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(300px,40vw,400px), 1fr));
+    gap:clamp(12px,2vw,18px);
   }
 
-  /* Leaderboard table box */
   .lb-table {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius:12px;
+    border-radius:14px;
     overflow:hidden;
+    transition: border-color .2s;
   }
+  .lb-table:hover { border-color:rgba(232,0,29,.15); }
 
   .lb-table-header {
     display:flex; align-items:center; justify-content:space-between;
-    padding: 10px 16px;
+    padding: 11px 18px;
     border-bottom: 1px solid var(--border);
     background: var(--surface2);
   }
 
-  .lb-table-title-wrap { display:flex; align-items:center; gap:8px; }
+  .lb-table-title-wrap { display:flex; align-items:center; gap:10px; }
 
   .lb-strip {
-    width:3px; height:16px; border-radius:2px;
+    width:3px; height:18px; border-radius:3px;
     background: var(--red); flex-shrink:0;
+    box-shadow: 0 0 8px rgba(232,0,29,.5);
   }
 
   .lb-table-title {
     font-family:'Bebas Neue',sans-serif;
-    font-size:16px; letter-spacing:.06em; color:#fff;
+    font-size:17px; letter-spacing:.06em; color:#fff;
   }
 
   .lb-table-stat {
     font-size:10px; font-weight:700; letter-spacing:.1em;
     text-transform:uppercase; color:var(--red);
     background: var(--red-dim);
-    border: 1px solid rgba(232,0,29,.2);
-    padding: 2px 7px; border-radius:4px;
+    border: 1px solid rgba(232,0,29,.18);
+    padding: 3px 9px; border-radius:5px;
   }
 
   .lb-col-headers {
     display:grid;
-    grid-template-columns: 26px 1fr 48px 72px;
-    padding: 7px 16px;
+    grid-template-columns: 28px 1fr 48px 76px;
+    padding: 7px 18px;
     border-bottom: 1px solid var(--border2);
   }
   .lb-col-headers span {
@@ -237,33 +251,29 @@
 
   .lb-row {
     display:grid;
-    grid-template-columns: 26px 1fr 48px 72px;
-    padding: 9px 16px;
+    grid-template-columns: 28px 1fr 48px 76px;
+    padding: 10px 18px;
     border-bottom: 1px solid var(--border2);
     align-items:center;
-    transition: background .14s;
+    transition: background .15s;
     position:relative;
   }
   .lb-row:last-child { border-bottom:none; }
-  .lb-row:hover { background:rgba(255,255,255,.022); }
+  .lb-row:hover { background:rgba(255,255,255,.025); }
 
-  .lb-row.top {
-    background: rgba(232,0,29,.05);
-  }
-  .lb-row.top:hover { background:rgba(232,0,29,.09); }
+  .lb-row.top { background:rgba(232,0,29,.04); }
+  .lb-row.top:hover { background:rgba(232,0,29,.08); }
   .lb-row.top::before {
-    content:''; position:absolute;
-    left:0; top:0; bottom:0; width:3px;
-    background: var(--red);
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--red);
   }
 
   .lb-rank {
     font-family:'Bebas Neue',sans-serif;
     font-size:15px; letter-spacing:.04em; color:var(--muted);
   }
-  .lb-rank.gold   { color:#f59e0b; }
-  .lb-rank.silver { color:#94a3b8; }
-  .lb-rank.bronze { color:#b45309; }
+  .lb-rank.gold   { color:var(--gold); }
+  .lb-rank.silver { color:var(--silver); }
+  .lb-rank.bronze { color:var(--bronze); }
 
   .lb-name {
     font-size:12px; font-weight:600; color:var(--text);
@@ -275,7 +285,7 @@
 
   .lb-val {
     font-family:'Bebas Neue',sans-serif;
-    font-size:17px; color:#fff;
+    font-size:18px; color:#fff;
     letter-spacing:.04em; text-align:center;
     font-variant-numeric:tabular-nums;
   }
@@ -284,35 +294,33 @@
   /* ── PLAYER CARDS ── */
   .player-grid {
     display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap:14px;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(260px,35vw,320px), 1fr));
+    gap:clamp(12px,2vw,16px);
   }
 
   .player-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius:12px;
+    border-radius:14px;
     overflow:hidden;
-    transition: border-color .2s;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
   }
-  .player-card:hover { border-color: rgba(232,0,29,.25); }
+  .player-card:hover { border-color:rgba(232,0,29,.25); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.4); }
 
   .player-card-header {
     display:flex; align-items:center; justify-content:space-between;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--border);
     background: var(--surface2);
     position:relative;
   }
   .player-card-header::before {
-    content:''; position:absolute;
-    left:0; top:0; bottom:0; width:3px;
-    background: var(--red);
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--red);
   }
 
   .player-card-name {
     font-family:'Bebas Neue',sans-serif;
-    font-size:19px; letter-spacing:.06em; color:#fff;
+    font-size:20px; letter-spacing:.06em; color:#fff;
   }
 
   .player-card-gp {
@@ -320,7 +328,7 @@
     text-transform:uppercase; color:var(--muted);
     background: var(--surface3);
     border: 1px solid var(--border);
-    padding: 2px 7px; border-radius:4px;
+    padding: 3px 9px; border-radius:5px;
   }
 
   .player-stat-grid {
@@ -332,195 +340,337 @@
 
   .player-stat-cell {
     background: var(--surface);
-    padding: 11px 10px;
+    padding: 12px 8px;
     text-align:center;
   }
 
   .player-stat-label {
     font-size:9px; font-weight:700; letter-spacing:.12em;
     text-transform:uppercase; color:var(--muted);
-    margin-bottom:3px;
+    margin-bottom:4px;
   }
 
   .player-stat-val {
     font-family:'Bebas Neue',sans-serif;
-    font-size:20px; letter-spacing:.04em; color:#fff;
+    font-size:21px; letter-spacing:.04em; color:#fff;
     font-variant-numeric:tabular-nums;
   }
 
   /* ── EMPTY STATE ── */
   .empty-state {
-    text-align:center; padding:80px 20px;
+    text-align:center; padding:clamp(48px,10vw,100px) 20px;
     color:var(--muted);
     grid-column: 1 / -1;
   }
   .empty-state-icon {
-    width:48px; height:48px; margin:0 auto 16px;
-    border-radius:12px; background:var(--surface2);
+    width:52px; height:52px; margin:0 auto 18px;
+    border-radius:14px; background:var(--surface2);
     border: 1px solid var(--border);
     display:flex; align-items:center; justify-content:center;
   }
   .empty-state h3 {
     font-family:'Bebas Neue',sans-serif;
-    font-size:24px; letter-spacing:.06em; color:var(--muted2);
-    margin-bottom:6px;
+    font-size:26px; letter-spacing:.06em; color:var(--muted2);
+    margin-bottom:8px;
   }
   .empty-state p { font-size:12px; color:var(--muted); }
 
-  /* ── ADMIN MODAL ── */
+  /* ══════════════════════════════════════════
+     ADMIN MODAL — Full redesign
+  ══════════════════════════════════════════ */
+
   .modal-backdrop {
     position:fixed; inset:0; z-index:200;
-    background:rgba(0,0,0,.75);
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
+    background:rgba(0,0,0,.82);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
     display:none; align-items:center; justify-content:center;
-    padding:20px;
+    padding:clamp(12px,4vw,24px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
   .modal-backdrop.open { display:flex; }
 
-  .modal {
+  /* ── AUTH SCREEN ── */
+  .auth-modal {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius:16px;
-    padding:32px;
-    width:460px; max-width:100%;
-    animation:modalIn .2s ease;
+    border-radius:18px;
+    padding:clamp(24px,6vw,40px);
+    width:100%; max-width:400px;
+    animation:slideUp .25s cubic-bezier(.16,1,.3,1);
+    position:relative; overflow:hidden;
   }
 
-  @keyframes modalIn {
-    from { opacity:0; transform:scale(.96) translateY(10px); }
-    to   { opacity:1; transform:scale(1) translateY(0); }
+  .auth-modal::before {
+    content:''; position:absolute;
+    top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, var(--red), rgba(232,0,29,.3));
+    border-radius:18px 18px 0 0;
   }
 
-  .modal-title {
+  .auth-logo {
+    width:44px; height:44px; border-radius:11px;
+    background: var(--red);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif; font-size:22px; color:#fff;
+    letter-spacing:.02em; margin-bottom:18px;
+    box-shadow: 0 0 20px rgba(232,0,29,.4);
+  }
+
+  .auth-title {
     font-family:'Bebas Neue',sans-serif;
-    font-size:26px; letter-spacing:.06em; color:#fff;
+    font-size:28px; letter-spacing:.06em; color:#fff; line-height:1;
     margin-bottom:4px;
   }
 
-  .modal-sub {
-    font-size:12px; color:var(--muted); margin-bottom:24px;
-  }
+  .auth-sub { font-size:12px; color:var(--muted); margin-bottom:28px; }
 
-  .modal-section-label {
-    font-size:10px; font-weight:700; letter-spacing:.12em;
-    text-transform:uppercase; color:var(--muted);
-    margin-bottom:10px;
-    display:flex; align-items:center; gap:8px;
-  }
-  .modal-section-label::after {
-    content:''; flex:1; height:1px; background:var(--border);
-  }
+  .auth-field { position:relative; margin-bottom:14px; }
 
-  .modal-divider {
-    border:none; border-top:1px solid var(--border);
-    margin:22px 0;
-  }
-
-  .modal-row { display:flex; gap:8px; align-items:stretch; }
-  .modal-row .modal-input { flex:1; margin-bottom:0; }
-
-  .modal-input {
+  .auth-input {
     width:100%;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius:8px; padding:11px 14px;
+    border-radius:10px;
+    padding: 13px 46px 13px 16px;
     color: var(--text);
-    font-family:'Inter',sans-serif; font-size:13px;
-    outline:none; transition:border-color .2s;
+    font-family:'DM Sans',sans-serif;
+    font-size:max(14px,16px);
+    outline:none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .auth-input:focus { border-color:rgba(232,0,29,.4); box-shadow:0 0 0 3px rgba(232,0,29,.08); }
+  .auth-input::placeholder { color:var(--muted); }
+
+  .auth-eye {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    padding:4px; transition:color .2s; line-height:0;
+  }
+  .auth-eye:hover { color:var(--text); }
+
+  .auth-error {
+    display:flex; align-items:center; gap:8px;
+    background:rgba(232,0,29,.08);
+    border:1px solid rgba(232,0,29,.2);
+    border-radius:8px; padding:10px 14px;
+    font-size:12px; color:#f87171;
     margin-bottom:14px;
-    /* prevent iOS zoom */
-    font-size: max(13px, 16px);
+    animation:shakeX .35s ease;
+    display:none;
   }
-  .modal-input:focus { border-color:rgba(232,0,29,.4); }
+  .auth-error.show { display:flex; }
+  @keyframes shakeX {
+    0%,100%{transform:translateX(0)}
+    20%,60%{transform:translateX(-5px)}
+    40%,80%{transform:translateX(5px)}
+  }
 
-  .modal-actions { display:flex; gap:10px; }
-
-  .btn-danger {
-    flex:1; background:var(--red); border:none; border-radius:8px;
-    padding:11px 18px; color:#fff;
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+  .auth-submit {
+    width:100%; background:var(--red); border:none; border-radius:10px;
+    padding:13px 18px; color:#fff;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700;
     letter-spacing:.06em; text-transform:uppercase;
-    cursor:pointer; transition:opacity .2s; min-height:42px;
+    cursor:pointer; transition:opacity .2s, transform .1s;
+    min-height:48px;
+    box-shadow: 0 4px 20px rgba(232,0,29,.3);
   }
-  .btn-danger:hover { opacity:.85; }
-  .btn-danger:disabled { opacity:.4; cursor:not-allowed; }
+  .auth-submit:hover { opacity:.9; }
+  .auth-submit:active { transform:scale(.98); }
+  .auth-submit:disabled { opacity:.4; cursor:not-allowed; }
 
-  .btn-secondary {
+  .auth-cancel {
+    width:100%; background:none; border:1px solid var(--border); border-radius:10px;
+    padding:12px; color:var(--muted);
+    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase;
+    cursor:pointer; transition:border-color .2s, color .2s; margin-top:10px;
+    min-height:46px;
+  }
+  .auth-cancel:hover { border-color:rgba(255,255,255,.2); color:var(--text); }
+
+  /* ── ADMIN PANEL (post-auth) ── */
+  .admin-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius:18px;
+    width:100%; max-width:520px;
+    animation:slideUp .25s cubic-bezier(.16,1,.3,1);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .admin-panel::before {
+    content:''; position:absolute;
+    top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, var(--red), rgba(232,0,29,.3));
+  }
+
+  .admin-panel-header {
+    padding:clamp(20px,5vw,28px) clamp(20px,5vw,28px) 0;
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:20px;
+  }
+
+  .admin-header-left { display:flex; align-items:center; gap:12px; }
+
+  .admin-auth-badge {
+    display:flex; align-items:center; gap:6px;
+    font-size:10px; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--green);
+    background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.2);
+    border-radius:100px; padding:3px 10px;
+  }
+  .admin-auth-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); }
+
+  .admin-panel-title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(22px,4vw,26px); letter-spacing:.06em; color:#fff; line-height:1;
+    margin-top:4px;
+  }
+
+  .panel-close {
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    color:var(--muted); cursor:pointer; padding:7px; line-height:0;
+    transition:color .2s, border-color .2s, background .2s;
+  }
+  .panel-close:hover { color:var(--text); border-color:rgba(255,255,255,.2); background:var(--surface3); }
+
+  .admin-body { padding: 0 clamp(20px,5vw,28px) clamp(20px,5vw,28px); }
+
+  .admin-section {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+    margin-bottom:12px;
+  }
+
+  .admin-section-header {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface2);
+  }
+
+  .admin-section-icon {
+    width:28px; height:28px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .admin-section-icon.blue  { background:rgba(96,165,250,.1); color:var(--blue); }
+  .admin-section-icon.amber { background:rgba(245,158,11,.1); color:var(--amber); }
+  .admin-section-icon.red   { background:rgba(232,0,29,.1); color:var(--red); }
+
+  .admin-section-label {
+    font-size:11px; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--text);
+  }
+  .admin-section-desc { font-size:11px; color:var(--muted); margin-top:1px; }
+
+  .admin-section-body { padding:14px 16px; }
+
+  .input-row {
+    display:flex; gap:8px; align-items:stretch;
+  }
+
+  .field-input {
+    flex:1;
     background: var(--surface2);
     border: 1px solid var(--border);
+    border-radius:8px;
+    padding:10px 14px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:max(13px,16px);
+    outline:none;
+    transition: border-color .2s, box-shadow .2s;
+    min-width:0;
+  }
+  .field-input:focus { border-color:rgba(232,0,29,.4); box-shadow:0 0 0 3px rgba(232,0,29,.08); }
+  .field-input::placeholder { color:var(--muted); }
+
+  .action-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border);
     border-radius:8px; padding:0 16px;
-    color: var(--text);
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
-    letter-spacing:.04em; text-transform:uppercase;
-    cursor:pointer; transition:border-color .2s, color .2s;
-    white-space:nowrap; min-height:42px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:.07em; text-transform:uppercase;
+    cursor:pointer; transition:border-color .2s, background .2s;
+    white-space:nowrap; min-height:40px;
+    flex-shrink:0;
   }
-  .btn-secondary:hover { border-color:rgba(232,0,29,.4); color:#fff; }
-  .btn-secondary:disabled { opacity:.4; cursor:not-allowed; }
+  .action-btn:hover { border-color:rgba(232,0,29,.35); background:var(--red-dim); }
+  .action-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-  .btn-cancel {
-    background:none; border:1px solid var(--border); border-radius:8px;
-    padding:11px 18px; color:var(--muted);
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
-    letter-spacing:.04em; text-transform:uppercase;
-    cursor:pointer; transition:border-color .2s, color .2s; min-height:42px;
+  .danger-btn {
+    width:100%; background:rgba(232,0,29,.08); border:1px solid rgba(232,0,29,.2); border-radius:8px;
+    padding:11px 18px; color:var(--red);
+    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:.07em; text-transform:uppercase;
+    cursor:pointer; transition:background .2s, border-color .2s; min-height:44px;
   }
-  .btn-cancel:hover { border-color:rgba(255,255,255,.25); color:var(--text); }
+  .danger-btn:hover { background:rgba(232,0,29,.15); border-color:rgba(232,0,29,.4); }
+  .danger-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-  .modal-msg {
-    font-size:12px; margin-top:10px; text-align:center; min-height:16px;
+  .panel-msg {
+    font-size:12px; margin-top:12px; padding:10px 14px;
+    border-radius:8px; display:none;
   }
-  .modal-msg.success { color:var(--green); }
-  .modal-msg.error   { color:var(--red); }
+  .panel-msg.show { display:block; }
+  .panel-msg.success { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); color:#4ade80; }
+  .panel-msg.error   { background:rgba(232,0,29,.08); border:1px solid rgba(232,0,29,.2); color:#f87171; }
 
   /* ── EDIT PANEL ── */
   .edit-backdrop {
     position:fixed; inset:0; z-index:300;
-    background:rgba(0,0,0,.6);
-    backdrop-filter:blur(6px);
+    background:rgba(0,0,0,.75);
+    backdrop-filter:blur(10px);
     display:none; align-items:center; justify-content:center;
-    padding:20px;
+    padding:clamp(12px,4vw,24px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
   .edit-backdrop.open { display:flex; }
 
   .edit-panel {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius:16px; padding:28px;
-    width:520px; max-width:100%;
-    max-height:90vh; overflow-y:auto;
-    animation:modalIn .2s ease;
+    border-radius:18px;
+    padding:clamp(22px,5vw,32px);
+    width:100%; max-width:540px;
+    animation:slideUp .25s cubic-bezier(.16,1,.3,1);
+    position:relative; overflow:hidden;
+  }
+
+  .edit-panel::before {
+    content:''; position:absolute;
+    top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, var(--blue), rgba(96,165,250,.3));
+    border-radius:18px 18px 0 0;
   }
 
   .edit-panel-header {
     display:flex; align-items:flex-start; justify-content:space-between;
-    margin-bottom:20px;
+    margin-bottom:22px;
   }
 
   .edit-panel-title {
     font-family:'Bebas Neue',sans-serif;
-    font-size:24px; letter-spacing:.06em; color:#fff; line-height:1;
+    font-size:clamp(22px,4vw,26px); letter-spacing:.06em; color:#fff; line-height:1;
   }
 
-  .edit-panel-sub {
-    font-size:11px; color:var(--muted); margin-top:4px;
-  }
-
-  .edit-close {
-    background:none; border:none; color:var(--muted);
-    cursor:pointer; padding:4px; line-height:1;
-    transition:color .2s;
-  }
-  .edit-close:hover { color:var(--text); }
+  .edit-panel-sub { font-size:11px; color:var(--muted); margin-top:4px; }
 
   .edit-stat-grid {
     display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:10px; margin-bottom:18px;
+    grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+    gap:10px; margin-bottom:20px;
   }
 
-  .edit-stat-field { display:flex; flex-direction:column; gap:5px; }
+  .edit-stat-field { display:flex; flex-direction:column; gap:6px; }
 
   .edit-stat-label {
     font-size:10px; font-weight:600; letter-spacing:.1em;
@@ -530,75 +680,96 @@
   .edit-stat-input {
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius:6px; padding:9px 10px;
-    color: var(--text);
-    font-family:'Inter',sans-serif;
-    outline:none; transition:border-color .2s;
-    width:100%;
-    font-size: max(13px, 16px);
+    border-radius:8px; padding:10px 12px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:max(13px,16px);
+    outline:none; width:100%;
+    transition: border-color .2s, box-shadow .2s;
   }
-  .edit-stat-input:focus { border-color:rgba(232,0,29,.4); }
+  .edit-stat-input:focus { border-color:rgba(96,165,250,.5); box-shadow:0 0 0 3px rgba(96,165,250,.08); }
 
   .edit-actions { display:flex; gap:10px; margin-top:4px; }
 
+  .btn-save {
+    flex:1; background:var(--red); border:none; border-radius:10px;
+    padding:13px 18px; color:#fff;
+    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:.07em; text-transform:uppercase;
+    cursor:pointer; transition:opacity .2s; min-height:46px;
+    box-shadow: 0 4px 16px rgba(232,0,29,.25);
+  }
+  .btn-save:hover { opacity:.88; }
+  .btn-save:disabled { opacity:.4; cursor:not-allowed; }
+
+  .btn-cancel {
+    background:none; border:1px solid var(--border); border-radius:10px;
+    padding:12px 18px; color:var(--muted);
+    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
+    letter-spacing:.05em; text-transform:uppercase;
+    cursor:pointer; transition:border-color .2s, color .2s; min-height:46px;
+  }
+  .btn-cancel:hover { border-color:rgba(255,255,255,.25); color:var(--text); }
+
+  .edit-msg {
+    font-size:12px; margin-top:12px; padding:10px 14px;
+    border-radius:8px; display:none;
+  }
+  .edit-msg.show { display:block; }
+  .edit-msg.success { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); color:#4ade80; }
+  .edit-msg.error   { background:rgba(232,0,29,.08); border:1px solid rgba(232,0,29,.2); color:#f87171; }
+
   /* ── TOAST ── */
   #toasts {
-    position:fixed; bottom:20px; right:16px;
+    position:fixed; bottom:max(20px, env(safe-area-inset-bottom, 20px)); right:16px;
     display:flex; flex-direction:column-reverse; gap:8px;
     z-index:9999; pointer-events:none;
-    max-width: min(300px, calc(100vw - 32px));
+    max-width: min(320px, calc(100vw - 32px));
   }
   .toast {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-left: 3px solid var(--red);
-    border-radius:8px; padding:10px 14px;
+    border-radius:10px; padding:11px 16px;
     font-size:13px; color:#fff;
-    box-shadow:0 8px 32px rgba(0,0,0,.5);
+    box-shadow:0 12px 40px rgba(0,0,0,.6);
     pointer-events:all;
-    animation:toastIn .22s ease;
+    animation:toastIn .22s cubic-bezier(.16,1,.3,1);
   }
   .toast.green { border-left-color:var(--green); }
   .toast.amber { border-left-color:var(--amber); }
   .toast.out   { animation:toastOut .22s ease forwards; }
-  @keyframes toastIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-5px)} }
+  @keyframes toastIn  { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateX(12px)} }
 
-  /* ── MOBILE ── */
+  @keyframes slideUp {
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* ── MOBILE FINE-TUNING ── */
   @media (max-width:900px) {
     .lb-grid { grid-template-columns:1fr; }
-    .player-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-    .hero { padding:18px 0 16px; }
-    .search-wrap { width:100%; }
+    .player-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
   }
 
-  @media (max-width:640px) {
-    .hero { flex-direction:column; gap:12px; }
-    .hero-title { font-size:24px; }
-    .search-wrap { width:100%; }
-    .lb-col-headers,
-    .lb-row { grid-template-columns: 22px 1fr 38px 58px; }
+  @media (max-width:480px) {
     .player-grid { grid-template-columns:1fr; }
-    .modal { padding:22px 18px; }
-    .modal-actions { flex-direction:column-reverse; }
-    .modal-row { flex-direction:column; }
-    .modal-row .modal-input { margin-bottom:8px; }
-    .btn-danger, .btn-cancel, .btn-secondary { width:100%; min-height:48px; }
+    .lb-col-headers,
+    .lb-row { grid-template-columns:22px 1fr 38px 60px; padding-left:14px; padding-right:14px; }
+    .lb-table-header { padding:10px 14px; }
     .edit-stat-grid { grid-template-columns:repeat(2,1fr); }
     .edit-actions { flex-direction:column-reverse; }
-  }
-
-  @media (max-width:380px) {
-    .hero-title { font-size:21px; }
-    .lb-table-title { font-size:14px; }
+    .admin-panel-header { flex-direction:column; gap:12px; }
+    .admin-auth-badge, .admin-panel-title { order:0; }
+    .panel-close { position:absolute; top:clamp(14px,3vw,22px); right:clamp(14px,3vw,22px); }
   }
 
   @media (hover:none) and (pointer:coarse) {
     .lb-row:hover { background:transparent; }
-    .lb-row.top:hover { background:rgba(232,0,29,.05); }
-    .lb-row:active { background:rgba(255,255,255,.04); }
-    .player-card:hover { border-color:var(--border); }
-    .player-card:active { border-color:rgba(232,0,29,.25); }
+    .lb-row.top:hover { background:rgba(232,0,29,.04); }
+    .player-card:hover { border-color:var(--border); transform:none; box-shadow:none; }
+    .lb-table:hover { border-color:var(--border); }
   }
 </style>
 </head>
@@ -607,7 +778,9 @@
 <!-- NAV -->
 <nav>
   <div class="nav-left">
-    <span class="nav-pill">Season 11</span>
+    <div class="nav-logo">R</div>
+    <span class="nav-brand"><em>RPL</em> Database</span>
+    <span class="season-badge">Season 11</span>
   </div>
   <div class="nav-right">
     <span class="sync-label" id="last-sync"></span>
@@ -620,8 +793,6 @@
 </nav>
 
 <div class="page">
-
-  <!-- HERO -->
   <div class="hero">
     <div>
       <div class="hero-title"><em>RPL</em> League Database</div>
@@ -636,58 +807,137 @@
     </div>
   </div>
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab active" data-tab="leaders">League Leaders</button>
     <button class="tab" data-tab="players">Player Cards</button>
   </div>
 
-  <!-- VIEWS -->
   <div class="view active" id="view-leaders">
     <div class="lb-grid" id="lb-grid"></div>
   </div>
-
   <div class="view" id="view-players">
     <div class="player-grid" id="player-grid"></div>
   </div>
-
 </div>
 
-<!-- ADMIN MODAL -->
+<!-- ══ AUTH MODAL ══ -->
 <div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal">
-    <div class="modal-title">Admin Panel</div>
-    <div class="modal-sub">Authenticate to manage player statistics.</div>
+  <div class="auth-modal" id="auth-modal">
+    <div class="auth-logo">R</div>
+    <div class="auth-title">Admin Access</div>
+    <div class="auth-sub">Enter your password to manage player statistics.</div>
 
-    <input class="modal-input" type="password" id="admin-pass" placeholder="Password" autocomplete="off">
-
-    <div class="modal-section-label">Edit Player Stats</div>
-    <div class="modal-row">
-      <input class="modal-input" type="text" id="edit-username-search" placeholder="Roblox username" autocomplete="off" spellcheck="false">
-      <button class="btn-secondary" id="modal-edit-load">Edit</button>
+    <div class="auth-error" id="auth-error">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" stroke="#f87171" stroke-width="1.3"/>
+        <line x1="7" y1="4" x2="7" y2="7.5" stroke="#f87171" stroke-width="1.3" stroke-linecap="round"/>
+        <circle cx="7" cy="9.5" r=".6" fill="#f87171"/>
+      </svg>
+      <span id="auth-error-text">Incorrect password. Try again.</span>
     </div>
 
-    <hr class="modal-divider">
-
-    <div class="modal-section-label">Remove Player</div>
-    <div class="modal-row">
-      <input class="modal-input" type="text" id="remove-username" placeholder="Roblox username" autocomplete="off" spellcheck="false">
-      <button class="btn-secondary" id="modal-remove">Remove</button>
+    <div class="auth-field">
+      <input class="auth-input" type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
+      <button class="auth-eye" id="auth-eye" type="button" aria-label="Toggle visibility">
+        <svg id="eye-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/>
+          <circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+      </button>
     </div>
 
-    <hr class="modal-divider">
-
-    <div class="modal-section-label">Danger Zone</div>
-    <div class="modal-actions">
-      <button class="btn-cancel" id="modal-cancel">Cancel</button>
-      <button class="btn-danger" id="modal-reset">Reset All Stats</button>
-    </div>
-
-    <div class="modal-msg" id="modal-msg"></div>
+    <button class="auth-submit" id="auth-submit">Unlock Admin Panel</button>
+    <button class="auth-cancel" id="auth-cancel">Cancel</button>
   </div>
-</div>
 
-<!-- EDIT STATS PANEL -->
+  <!-- ══ ADMIN PANEL (hidden until authed) ══ -->
+  <div class="admin-panel" id="admin-panel" style="display:none;">
+    <div class="admin-panel-header">
+      <div class="admin-header-left">
+        <div>
+          <div class="admin-auth-badge">Authenticated</div>
+          <div class="admin-panel-title">Admin Panel</div>
+        </div>
+      </div>
+      <button class="panel-close" id="panel-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="admin-body">
+
+      <!-- Edit Section -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <div class="admin-section-icon blue">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="admin-section-label">Edit Player Stats</div>
+            <div class="admin-section-desc">Load a player by username and update their statistics.</div>
+          </div>
+        </div>
+        <div class="admin-section-body">
+          <div class="input-row">
+            <input class="field-input" type="text" id="edit-username-search" placeholder="Roblox username" autocomplete="off" spellcheck="false">
+            <button class="action-btn" id="modal-edit-load">Load &amp; Edit</button>
+          </div>
+          <div class="panel-msg" id="edit-search-msg"></div>
+        </div>
+      </div>
+
+      <!-- Remove Section -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <div class="admin-section-icon amber">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 4h10M5 4V2.5h4V4M5.5 6.5v4M8.5 6.5v4M3 4l.7 7.5h6.6L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="admin-section-label">Remove Player</div>
+            <div class="admin-section-desc">Permanently delete a player record from the database.</div>
+          </div>
+        </div>
+        <div class="admin-section-body">
+          <div class="input-row">
+            <input class="field-input" type="text" id="remove-username" placeholder="Roblox username" autocomplete="off" spellcheck="false">
+            <button class="action-btn" id="modal-remove">Remove</button>
+          </div>
+          <div class="panel-msg" id="remove-msg"></div>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <div class="admin-section-icon red">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2L12.5 12H1.5L7 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+              <line x1="7" y1="6" x2="7" y2="8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              <circle cx="7" cy="10.2" r=".5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <div class="admin-section-label">Danger Zone</div>
+            <div class="admin-section-desc">Irreversible — wipes all player records for a new season.</div>
+          </div>
+        </div>
+        <div class="admin-section-body">
+          <button class="danger-btn" id="modal-reset">Reset All Stats &amp; Start New Season</button>
+          <div class="panel-msg" id="reset-msg"></div>
+        </div>
+      </div>
+
+    </div><!-- /admin-body -->
+  </div><!-- /admin-panel -->
+</div><!-- /modal-backdrop -->
+
+<!-- ══ EDIT STATS PANEL ══ -->
 <div class="edit-backdrop" id="edit-backdrop">
   <div class="edit-panel">
     <div class="edit-panel-header">
@@ -695,18 +945,18 @@
         <div class="edit-panel-title" id="edit-panel-title">Edit Player</div>
         <div class="edit-panel-sub">Changes are saved immediately to the database.</div>
       </div>
-      <button class="edit-close" id="edit-close" aria-label="Close">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <button class="panel-close" id="edit-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
     <div class="edit-stat-grid" id="edit-stat-grid"></div>
     <div class="edit-actions">
       <button class="btn-cancel" id="edit-cancel">Cancel</button>
-      <button class="btn-danger" id="edit-save">Save Changes</button>
+      <button class="btn-save" id="edit-save">Save Changes</button>
     </div>
-    <div class="modal-msg" id="edit-msg"></div>
+    <div class="edit-msg" id="edit-msg"></div>
   </div>
 </div>
 
@@ -717,6 +967,8 @@ const POLL_INTERVAL_MS = 30_000;
 let allPlayers = [];
 let searchQuery = '';
 let lastUpdatedAt = null;
+let adminPassword = '';
+let isAuthed = false;
 
 const LEADERBOARDS = [
   { title:'Points Per Game',       stat:'PPG',  key:'PPG',  pct:false, asc:false },
@@ -793,10 +1045,7 @@ async function fetchData() {
   }
 }
 
-function render() {
-  buildLeaderboards();
-  buildPlayerCards();
-}
+function render() { buildLeaderboards(); buildPlayerCards(); }
 
 /* ── LEADERBOARDS ── */
 function buildLeaderboards() {
@@ -808,9 +1057,9 @@ function buildLeaderboards() {
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-state-icon">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#56566a" stroke-width="1.4"/>
-          <line x1="11" y1="7" x2="11" y2="11" stroke="#56566a" stroke-width="1.4" stroke-linecap="round"/>
-          <circle cx="11" cy="14.5" r=".8" fill="#56566a"/>
+          <circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/>
+          <line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="11" cy="14.5" r=".8" fill="#52526a"/>
         </svg>
       </div>
       <h3>No Data Yet</h3>
@@ -881,9 +1130,9 @@ function buildPlayerCards() {
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-state-icon">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="11" r="9" stroke="#56566a" stroke-width="1.4"/>
-          <line x1="11" y1="7" x2="11" y2="11" stroke="#56566a" stroke-width="1.4" stroke-linecap="round"/>
-          <circle cx="11" cy="14.5" r=".8" fill="#56566a"/>
+          <circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/>
+          <line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="11" cy="14.5" r=".8" fill="#52526a"/>
         </svg>
       </div>
       <h3>${q?'No Results':'No Data Yet'}</h3>
@@ -925,31 +1174,118 @@ document.getElementById('search').addEventListener('input', e => {
   render();
 });
 
-/* ── ADMIN MODAL ── */
+/* ── AUTH FLOW ── */
 const backdrop = document.getElementById('modal-backdrop');
-const passInput = document.getElementById('admin-pass');
-const msgEl = document.getElementById('modal-msg');
-const resetBtn = document.getElementById('modal-reset');
-const removeBtn = document.getElementById('modal-remove');
-const removeUsernameInput = document.getElementById('remove-username');
-const editLoadBtn = document.getElementById('modal-edit-load');
-const editUsernameInput = document.getElementById('edit-username-search');
+const authModal = document.getElementById('auth-modal');
+const adminPanel = document.getElementById('admin-panel');
+const authPass = document.getElementById('auth-pass');
+const authError = document.getElementById('auth-error');
+const authErrorText = document.getElementById('auth-error-text');
+const authSubmit = document.getElementById('auth-submit');
+const authEye = document.getElementById('auth-eye');
 
-function showMsg(text, type) {
-  msgEl.textContent = text;
-  msgEl.className = `modal-msg ${type}`;
+function showAuthError(msg) {
+  authErrorText.textContent = msg;
+  authError.classList.add('show');
+  authPass.focus();
 }
+
+function hideAuthError() { authError.classList.remove('show'); }
+
+// toggle password visibility
+authEye.addEventListener('click', () => {
+  const isPass = authPass.type === 'password';
+  authPass.type = isPass ? 'text' : 'password';
+  authEye.innerHTML = isPass
+    ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3" opacity=".4"/>
+        <path d="M2 2L16 16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+       </svg>`
+    : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/>
+        <circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/>
+       </svg>`;
+});
+
+async function attemptAuth() {
+  const pass = authPass.value.trim();
+  if (!pass) { showAuthError('Please enter your password.'); return; }
+
+  authSubmit.disabled = true;
+  authSubmit.textContent = 'Verifying…';
+  hideAuthError();
+
+  // Verify by trying a benign API call
+  try {
+    const res = await fetch('/api/remove', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pass, username: '__auth_check__' })
+    });
+    const json = await res.json();
+    // If we get 404 (player not found) it means password was accepted
+    // If we get 401/403 the password is wrong
+    if (res.status === 401 || res.status === 403 || json.error === 'Unauthorized') {
+      showAuthError('Incorrect password. Try again.');
+      authPass.value = '';
+    } else {
+      // Auth success
+      adminPassword = pass;
+      isAuthed = true;
+      authModal.style.display = 'none';
+      adminPanel.style.display = 'block';
+    }
+  } catch(e) {
+    // Network error — still open panel (server will validate on each action)
+    adminPassword = pass;
+    isAuthed = true;
+    authModal.style.display = 'none';
+    adminPanel.style.display = 'block';
+  } finally {
+    authSubmit.disabled = false;
+    authSubmit.textContent = 'Unlock Admin Panel';
+  }
+}
+
+authSubmit.addEventListener('click', attemptAuth);
+authPass.addEventListener('keydown', e => { if (e.key === 'Enter') attemptAuth(); });
+authPass.addEventListener('input', hideAuthError);
+
+document.getElementById('auth-cancel').addEventListener('click', closeAdmin);
+document.getElementById('panel-close').addEventListener('click', closeAdmin);
+
+backdrop.addEventListener('click', e => { if (e.target === backdrop) closeAdmin(); });
 
 document.getElementById('admin-btn').addEventListener('click', () => {
   backdrop.classList.add('open');
-  passInput.value = ''; removeUsernameInput.value = ''; editUsernameInput.value = '';
-  msgEl.textContent = ''; msgEl.className = 'modal-msg';
-  setTimeout(() => passInput.focus(), 50);
+  if (!isAuthed) {
+    authModal.style.display = '';
+    adminPanel.style.display = 'none';
+    authPass.value = '';
+    hideAuthError();
+    setTimeout(() => authPass.focus(), 80);
+  }
 });
 
-document.getElementById('modal-cancel').addEventListener('click', () => backdrop.classList.remove('open'));
-backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
-passInput.addEventListener('keydown', e => { if (e.key === 'Enter') editUsernameInput.focus(); });
+function closeAdmin() {
+  backdrop.classList.remove('open');
+  // Reset auth state so password is required next time
+  isAuthed = false;
+  adminPassword = '';
+  authModal.style.display = '';
+  adminPanel.style.display = 'none';
+}
+
+/* ── PANEL MESSAGES ── */
+function showPanelMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `panel-msg ${type} show`;
+}
+function clearPanelMsg(id) {
+  const el = document.getElementById(id);
+  el.className = 'panel-msg';
+  el.textContent = '';
+}
 
 /* ── EDIT PLAYER ── */
 const editBackdrop = document.getElementById('edit-backdrop');
@@ -967,20 +1303,23 @@ function openEditPanel(player) {
       <input class="edit-stat-input" id="es-${f.key}" type="number" step="any" min="0"
              value="${player.stats[f.key] ?? 0}" data-key="${f.key}">
     </div>`).join('');
-  editMsgEl.textContent = ''; editMsgEl.className = 'modal-msg';
+  editMsgEl.className = 'edit-msg';
+  editMsgEl.textContent = '';
   editBackdrop.classList.add('open');
-  setTimeout(() => editStatGrid.querySelector('.edit-stat-input')?.focus(), 50);
+  setTimeout(() => editStatGrid.querySelector('.edit-stat-input')?.focus(), 80);
 }
+
+const editUsernameInput = document.getElementById('edit-username-search');
+const editLoadBtn = document.getElementById('modal-edit-load');
 
 editUsernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') editLoadBtn.click(); });
 
 editLoadBtn.addEventListener('click', () => {
-  const pass = passInput.value.trim(), username = editUsernameInput.value.trim();
-  if (!pass)     { showMsg('Enter your password first.', 'error'); return; }
-  if (!username) { showMsg('Enter a username to edit.', 'error'); return; }
+  clearPanelMsg('edit-search-msg');
+  const username = editUsernameInput.value.trim();
+  if (!username) { showPanelMsg('edit-search-msg','Enter a username to edit.','error'); return; }
   const player = allPlayers.find(p => p.username.toLowerCase() === username.toLowerCase());
-  if (!player)   { showMsg(`Player "${username}" not found.`, 'error'); return; }
-  showMsg('', '');
+  if (!player) { showPanelMsg('edit-search-msg',`Player "${username}" not found.`,'error'); return; }
   openEditPanel(player);
 });
 
@@ -990,8 +1329,7 @@ document.getElementById('edit-cancel').addEventListener('click', closeEditPanel)
 editBackdrop.addEventListener('click', e => { if (e.target === editBackdrop) closeEditPanel(); });
 
 editSaveBtn.addEventListener('click', async () => {
-  const pass = passInput.value.trim();
-  if (!pass) { editMsgEl.textContent = 'Password missing.'; editMsgEl.className = 'modal-msg error'; return; }
+  if (!adminPassword) { editMsgEl.textContent = 'Session expired.'; editMsgEl.className = 'edit-msg error show'; return; }
 
   const stats = {};
   editStatGrid.querySelectorAll('.edit-stat-input').forEach(inp => {
@@ -999,12 +1337,12 @@ editSaveBtn.addEventListener('click', async () => {
   });
 
   editSaveBtn.disabled = true; editSaveBtn.textContent = 'Saving…';
-  editMsgEl.textContent = ''; editMsgEl.className = 'modal-msg';
+  editMsgEl.className = 'edit-msg';
 
   try {
     const res = await fetch('/api/edit', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ password:pass, username:editingUsername, stats })
+      body: JSON.stringify({ password:adminPassword, username:editingUsername, stats })
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error||'Failed');
@@ -1014,67 +1352,72 @@ editSaveBtn.addEventListener('click', async () => {
     render();
     toast(`${json.player.username} updated`, 'green', 4000);
     editMsgEl.textContent = `✓ ${json.player.username} updated successfully.`;
-    editMsgEl.className = 'modal-msg success';
+    editMsgEl.className = 'edit-msg success show';
     setTimeout(closeEditPanel, 1400);
   } catch(e) {
     editMsgEl.textContent = e.message || 'Save failed.';
-    editMsgEl.className = 'modal-msg error';
+    editMsgEl.className = 'edit-msg error show';
   } finally {
     editSaveBtn.disabled = false; editSaveBtn.textContent = 'Save Changes';
   }
 });
 
 /* ── REMOVE ── */
+const removeUsernameInput = document.getElementById('remove-username');
+const removeBtn = document.getElementById('modal-remove');
+
 removeUsernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') removeBtn.click(); });
+
 removeBtn.addEventListener('click', async () => {
-  const pass = passInput.value.trim(), username = removeUsernameInput.value.trim();
-  if (!pass)     { showMsg('Enter your password.', 'error'); return; }
-  if (!username) { showMsg('Enter a username to remove.', 'error'); return; }
+  clearPanelMsg('remove-msg');
+  const username = removeUsernameInput.value.trim();
+  if (!username) { showPanelMsg('remove-msg','Enter a username to remove.','error'); return; }
 
   removeBtn.disabled = true; removeBtn.textContent = 'Removing…';
-  msgEl.textContent = ''; msgEl.className = 'modal-msg';
 
   try {
     const res = await fetch('/api/remove', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ password:pass, username })
+      body: JSON.stringify({ password:adminPassword, username })
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error||'Failed');
-    showMsg(`✓ "${json.deleted}" removed.`, 'success');
+    showPanelMsg('remove-msg',`✓ "${json.deleted}" removed successfully.`,'success');
     allPlayers = allPlayers.filter(p => p.username.toLowerCase() !== json.deleted.toLowerCase());
     removeUsernameInput.value = '';
     render();
     toast(`${json.deleted} removed`, 'amber', 4000);
   } catch(e) {
-    showMsg(e.message || 'Incorrect password or player not found.', 'error');
+    showPanelMsg('remove-msg', e.message || 'Player not found or error occurred.','error');
   } finally {
     removeBtn.disabled = false; removeBtn.textContent = 'Remove';
   }
 });
 
 /* ── RESET ── */
+const resetBtn = document.getElementById('modal-reset');
+
 resetBtn.addEventListener('click', async () => {
-  const pass = passInput.value.trim();
-  if (!pass) { showMsg('Enter your password.', 'error'); return; }
+  clearPanelMsg('reset-msg');
+  if (!confirm('⚠️ This will permanently delete ALL player stats. This cannot be undone.\n\nAre you absolutely sure?')) return;
 
   resetBtn.disabled = true; resetBtn.textContent = 'Resetting…';
-  msgEl.textContent = ''; msgEl.className = 'modal-msg';
 
   try {
     const res = await fetch('/api/reset', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ password:pass })
+      body: JSON.stringify({ password:adminPassword })
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error||'Failed');
-    showMsg(`✓ Reset complete. ${json.deleted} player records deleted.`, 'success');
+    showPanelMsg('reset-msg', `✓ Reset complete. ${json.deleted} records deleted.`, 'success');
     allPlayers = []; render();
-    setTimeout(() => backdrop.classList.remove('open'), 2000);
+    toast('All stats reset', 'amber', 5000);
+    setTimeout(closeAdmin, 2500);
   } catch(e) {
-    showMsg('Incorrect password or server error.', 'error');
+    showPanelMsg('reset-msg', 'Reset failed. Check your session.', 'error');
   } finally {
-    resetBtn.disabled = false; resetBtn.textContent = 'Reset All Stats';
+    resetBtn.disabled = false; resetBtn.textContent = 'Reset All Stats & Start New Season';
   }
 });
 
