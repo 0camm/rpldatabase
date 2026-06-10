@@ -893,7 +893,7 @@ let cardMode   = 'avg';
 // Helper: compute total for a stat (pct stats can't be totalled meaningfully, so they stay as avg)
 function totalVal(p, key) {
   const gp = p.stats.GP || 0;
-  return (p.stats[key] ?? 0) * gp;
+  return Math.round((p.stats[key] ?? 0) * gp);
 }
 
 const LEADERBOARDS_AVG = [
