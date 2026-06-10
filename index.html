@@ -595,6 +595,26 @@ select.fc{
 .edit-msg.success{background:var(--gr-d);border:1px solid rgba(24,212,100,.18);color:var(--gr)}
 .edit-msg.error{background:var(--red-dim);border:1px solid var(--red-mid);color:#f87171}
 
+/* ── TOTAL / AVG TOGGLE ── */
+.stat-mode-toggle{
+  display:flex;gap:2px;
+  background:var(--s2);border:1px solid var(--b);
+  border-radius:7px;padding:2px;flex-shrink:0;
+}
+.smt-btn{
+  background:none;border:none;border-radius:5px;
+  padding:4px 11px;font-family:'Inter',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mu);cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.smt-btn.active{background:var(--s4);color:var(--tx)}
+
+.total-badge{
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--am);background:var(--am-d);border:1px solid rgba(245,166,35,.22);
+  padding:2px 8px;border-radius:4px;
+}
+
 /* ── MOBILE ── */
 @media(max-width:640px){
   .hero-h1{font-size:34px}
@@ -695,6 +715,10 @@ select.fc{
             <option value="3PT">3PT%</option>
             <option value="FT">FT%</option>
           </select>
+          <div class="stat-mode-toggle">
+            <button class="smt-btn active" id="mode-avg">Avg</button>
+            <button class="smt-btn" id="mode-total">Total</button>
+          </div>
         </div>
       </div>
       <div class="lb-grid" id="lb-grid"></div>
@@ -718,6 +742,10 @@ select.fc{
             <option value="BPG">Sort: BPG</option>
             <option value="GP">Sort: GP</option>
           </select>
+          <div class="stat-mode-toggle">
+            <button class="smt-btn active" id="card-mode-avg">Avg</button>
+            <button class="smt-btn" id="card-mode-total">Total</button>
+          </div>
         </div>
       </div>
       <div class="player-grid" id="player-grid"></div>
@@ -859,8 +887,16 @@ select.fc{
 <script>
 const POLL = 30000;
 let allPlayers = [], searchQuery = '', lastUpdatedAt = null, adminPassword = '', isAuthed = false;
+let leaderMode = 'avg'; // 'avg' | 'total'
+let cardMode   = 'avg';
 
-const LEADERBOARDS = [
+// Helper: compute total for a stat (pct stats can't be totalled meaningfully, so they stay as avg)
+function totalVal(p, key) {
+  const gp = p.stats.GP || 0;
+  return (p.stats[key] ?? 0) * gp;
+}
+
+const LEADERBOARDS_AVG = [
   {title:'Points Per Game',      stat:'PPG',  key:'PPG',  pct:false,asc:false},
   {title:'Assists Per Game',     stat:'APG',  key:'APG',  pct:false,asc:false},
   {title:'Rebounds Per Game',    stat:'RPG',  key:'RPG',  pct:false,asc:false},
@@ -871,6 +907,32 @@ const LEADERBOARDS = [
   {title:'3-Point Percentage',   stat:'3PT%', key:'3PT',  pct:true, asc:false},
   {title:'Free Throw Percentage',stat:'FT%',  key:'FT',   pct:true, asc:false},
 ];
+const LEADERBOARDS_TOTAL = [
+  {title:'Total Points',    stat:'PTS',  key:'PPG',  pct:false,asc:false},
+  {title:'Total Assists',   stat:'AST',  key:'APG',  pct:false,asc:false},
+  {title:'Total Rebounds',  stat:'REB',  key:'RPG',  pct:false,asc:false},
+  {title:'Total Steals',    stat:'STL',  key:'SPG',  pct:false,asc:false},
+  {title:'Total Blocks',    stat:'BLK',  key:'BPG',  pct:false,asc:false},
+  {title:'Total Turnovers', stat:'TOV',  key:'TOPG', pct:false,asc:true },
+  {title:'Free Throws Made',stat:'FTM',  key:'FTPG', pct:false,asc:false},
+  {title:'Games Played',    stat:'GP',   key:'GP',   pct:false,asc:false,noMul:true},
+];
+
+// Build leaderboards object depending on mode
+function getLeaderboards() {
+  const statFilter = document.getElementById('f-stat').value;
+  if (leaderMode === 'total') {
+    // Map filter key from avg names to total boards
+    if (statFilter) {
+      const found = LEADERBOARDS_TOTAL.find(lb => lb.key === statFilter);
+      return found ? [found] : LEADERBOARDS_TOTAL;
+    }
+    return LEADERBOARDS_TOTAL;
+  }
+  return statFilter ? LEADERBOARDS_AVG.filter(lb => lb.key === statFilter) : LEADERBOARDS_AVG;
+}
+
+const LEADERBOARDS = LEADERBOARDS_AVG; // kept for compat
 const RANK_COLORS = ['gold','silver','bronze','','','','','','',''];
 const STAT_FIELDS = [
   {key:'GP',label:'GP'},{key:'PPG',label:'PPG'},{key:'APG',label:'APG'},
@@ -911,17 +973,27 @@ function render(){buildLeaderboards();buildPlayerCards()}
 function buildLeaderboards(){
   const grid=document.getElementById('lb-grid');
   const q=document.getElementById('f-leader-search').value.trim().toLowerCase();
-  const statFilter=document.getElementById('f-stat').value;
   const players=allPlayers;
   const active=players.filter(p=>p.stats&&p.stats.GP>0);
   document.getElementById('leaders-ct').textContent=`${active.length} player${active.length!==1?'s':''}`;
-  const boards=statFilter?LEADERBOARDS.filter(lb=>lb.key===statFilter):LEADERBOARDS;
+  const boards=getLeaderboards();
   if(!players.length){grid.innerHTML=emptyHTML('No Data Yet','Stats will appear after the first game is committed.');return}
+
   grid.innerHTML=boards.map(lb=>{
-    const sorted=[...players].filter(p=>p.stats&&p.stats.GP>0).sort((a,b)=>{const av=a.stats[lb.key]??0,bv=b.stats[lb.key]??0;return lb.asc?av-bv:bv-av}).slice(0,10);
+    const isTotal = leaderMode==='total' && !lb.noMul && !lb.pct;
+    const sorted=[...players].filter(p=>p.stats&&p.stats.GP>0).sort((a,b)=>{
+      const av=isTotal?totalVal(a,lb.key):(a.stats[lb.key]??0);
+      const bv=isTotal?totalVal(b,lb.key):(b.stats[lb.key]??0);
+      return lb.asc?av-bv:bv-av;
+    }).slice(0,10);
     if(!sorted.length)return'';
-    const rows=sorted.map((p,i)=>{const match=q&&p.username.toLowerCase().includes(q);return`<div class="lb-row ${i===0?'top':''}"><span class="lb-rank ${RANK_COLORS[i]||''}">${i+1}</span><span class="lb-name ${match?'search-match':''}">${p.username}</span><span class="lb-gp">${p.stats.GP}</span><span class="lb-val">${fmt(p.stats[lb.key],lb.pct)}</span></div>`}).join('');
-    return`<div class="lb-table"><div class="lb-table-hd"><div class="lb-table-left"><div class="lb-strip"></div><span class="lb-table-title">${lb.title}</span></div><span class="lb-table-stat">${lb.stat}</span></div><div class="lb-col-hd"><span>#</span><span>Player</span><span>GP</span><span>${lb.stat}</span></div>${rows}</div>`;
+    const badge=isTotal?`<span class="total-badge">${lb.stat}</span>`:`<span class="lb-table-stat">${lb.stat}</span>`;
+    const rows=sorted.map((p,i)=>{
+      const match=q&&p.username.toLowerCase().includes(q);
+      const dispVal=isTotal?totalVal(p,lb.key):(lb.noMul?p.stats[lb.key]:p.stats[lb.key]);
+      return`<div class="lb-row ${i===0?'top':''}"><span class="lb-rank ${RANK_COLORS[i]||''}">${i+1}</span><span class="lb-name ${match?'search-match':''}">${p.username}</span><span class="lb-gp">${p.stats.GP}</span><span class="lb-val">${fmt(dispVal,lb.pct)}</span></div>`;
+    }).join('');
+    return`<div class="lb-table"><div class="lb-table-hd"><div class="lb-table-left"><div class="lb-strip"></div><span class="lb-table-title">${lb.title}</span></div>${badge}</div><div class="lb-col-hd"><span>#</span><span>Player</span><span>GP</span><span>${lb.stat}</span></div>${rows}</div>`;
   }).join('');
 }
 
@@ -934,13 +1006,40 @@ function buildPlayerCards(){
   players.sort((a,b)=>(b.stats[sortKey]??0)-(a.stats[sortKey]??0));
   document.getElementById('players-ct').textContent=`${players.length} player${players.length!==1?'s':''}`;
   if(!players.length){grid.innerHTML=emptyHTML(q?'No Results':'No Data Yet',q?`No players matching "${q}"`:'Stats will appear after the first game.');return}
+
+  // Stat definitions: avg stats + derived totals
+  const AVG_STATS = [
+    {label:'PPG',key:'PPG',pct:false},{label:'APG',key:'APG',pct:false},
+    {label:'RPG',key:'RPG',pct:false},{label:'SPG',key:'SPG',pct:false},
+    {label:'BPG',key:'BPG',pct:false},{label:'TOPG',key:'TOPG',pct:false},
+    {label:'FG%',key:'FG',pct:true},{label:'3PT%',key:'3PT',pct:true},
+    {label:'FT%',key:'FT',pct:true},
+  ];
+  const TOT_STATS = [
+    {label:'PTS',key:'PPG',total:true},{label:'AST',key:'APG',total:true},
+    {label:'REB',key:'RPG',total:true},{label:'STL',key:'SPG',total:true},
+    {label:'BLK',key:'BPG',total:true},{label:'TOV',key:'TOPG',total:true},
+    {label:'FTM',key:'FTPG',total:true},{label:'FG%',key:'FG',pct:true},
+    {label:'3PT%',key:'3PT',pct:true},
+  ];
+  const statSet = cardMode==='total' ? TOT_STATS : AVG_STATS;
+
   grid.innerHTML=players.map(p=>{
-    const cells=PLAYER_STATS.map(s=>`<div class="player-stat-cell"><div class="player-stat-label">${s.label}</div><div class="player-stat-val">${fmt(p.stats[s.key],s.pct)}</div></div>`).join('');
-    return`<div class="player-card"><div class="player-card-hd"><span class="player-card-name">${p.username}</span><span class="player-card-gp">${p.stats.GP} GP</span></div><div class="player-stat-grid">${cells}</div></div>`;
+    const cells=statSet.map(s=>{
+      const v=s.total?totalVal(p,s.key):(p.stats[s.key]??0);
+      return`<div class="player-stat-cell"><div class="player-stat-label">${s.label}</div><div class="player-stat-val">${fmt(v,s.pct||false)}</div></div>`;
+    }).join('');
+    const modeLabel=cardMode==='total'?'<span style="font-size:9px;color:var(--am);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-left:4px">TOT</span>':'';
+    return`<div class="player-card"><div class="player-card-hd"><span class="player-card-name">${p.username}${modeLabel}</span><span class="player-card-gp">${p.stats.GP} GP</span></div><div class="player-stat-grid">${cells}</div></div>`;
   }).join('');
 }
 
 function emptyHTML(title,desc){return`<div class="empty-state"><div class="empty-state-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/><line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="14.5" r=".8" fill="#52526a"/></svg></div><h3>${title}</h3><p>${desc}</p></div>`}
+
+document.getElementById('mode-avg').addEventListener('click',()=>{leaderMode='avg';document.getElementById('mode-avg').classList.add('active');document.getElementById('mode-total').classList.remove('active');buildLeaderboards()});
+document.getElementById('mode-total').addEventListener('click',()=>{leaderMode='total';document.getElementById('mode-total').classList.add('active');document.getElementById('mode-avg').classList.remove('active');buildLeaderboards()});
+document.getElementById('card-mode-avg').addEventListener('click',()=>{cardMode='avg';document.getElementById('card-mode-avg').classList.add('active');document.getElementById('card-mode-total').classList.remove('active');buildPlayerCards()});
+document.getElementById('card-mode-total').addEventListener('click',()=>{cardMode='total';document.getElementById('card-mode-total').classList.add('active');document.getElementById('card-mode-avg').classList.remove('active');buildPlayerCards()});
 
 document.querySelectorAll('.tab-btn').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));tab.classList.add('active');document.getElementById('view-'+tab.dataset.tab).classList.add('active')})});
 
