@@ -819,6 +819,7 @@ select.fc{
             <option value="FG">FG%</option>
             <option value="3PT">3PT%</option>
             <option value="FT">FT%</option>
+            <option value="GP">Games Played (GP)</option>
           </select>
           <div class="stat-mode-toggle">
             <button class="smt-btn active" id="mode-avg">Avg</button>
@@ -1051,6 +1052,7 @@ const LEADERBOARDS_AVG = [
   {title:'Field Goal Percentage',stat:'FG%',  key:'FG',   pct:true, asc:false},
   {title:'3-Point Percentage',   stat:'3PT%', key:'3PT',  pct:true, asc:false},
   {title:'Free Throw Percentage',stat:'FT%',  key:'FT',   pct:true, asc:false},
+  {title:'Games Played',         stat:'GP',   key:'GP',   pct:false,asc:false,noMul:true},
 ];
 const LEADERBOARDS_TOTAL = [
   {title:'Overall Rating',  stat:'OVR',  key:'OVR',  pct:false,asc:false,isOvr:true},
