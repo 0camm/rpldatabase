@@ -809,6 +809,7 @@ select.fc{
           <input class="fc fc-search" id="f-leader-search" placeholder="Filter player…" autocomplete="off" spellcheck="false">
           <select class="fc" id="f-stat">
             <option value="">All categories</option>
+            <option value="OVR">Overall (OVR)</option>
             <option value="PPG">Points (PPG)</option>
             <option value="APG">Assists (APG)</option>
             <option value="RPG">Rebounds (RPG)</option>
@@ -839,6 +840,7 @@ select.fc{
         <div class="filters">
           <input class="fc fc-search" id="f-player-search" placeholder="Search player…" autocomplete="off" spellcheck="false">
           <select class="fc" id="f-sort">
+            <option value="OVR">Sort: Best Overall</option>
             <option value="PPG">Sort: PPG</option>
             <option value="APG">Sort: APG</option>
             <option value="RPG">Sort: RPG</option>
@@ -1027,7 +1029,19 @@ function totalVal(p, key) {
   return Math.round((p.stats[key] ?? 0) * gp);
 }
 
+// Helper: composite "Overall" rating — classic efficiency style.
+// OVR = PPG + RPG + APG + SPG + BPG − TOPG (or the Total-mode equivalent of each term).
+function ovrVal(p, mode) {
+  const s = p.stats || {};
+  if (mode === 'total') {
+    return totalVal(p,'PPG') + totalVal(p,'RPG') + totalVal(p,'APG')
+         + totalVal(p,'SPG') + totalVal(p,'BPG') - totalVal(p,'TOPG');
+  }
+  return (s.PPG??0) + (s.RPG??0) + (s.APG??0) + (s.SPG??0) + (s.BPG??0) - (s.TOPG??0);
+}
+
 const LEADERBOARDS_AVG = [
+  {title:'Overall Rating',       stat:'OVR',  key:'OVR',  pct:false,asc:false,isOvr:true},
   {title:'Points Per Game',      stat:'PPG',  key:'PPG',  pct:false,asc:false},
   {title:'Assists Per Game',     stat:'APG',  key:'APG',  pct:false,asc:false},
   {title:'Rebounds Per Game',    stat:'RPG',  key:'RPG',  pct:false,asc:false},
@@ -1039,6 +1053,7 @@ const LEADERBOARDS_AVG = [
   {title:'Free Throw Percentage',stat:'FT%',  key:'FT',   pct:true, asc:false},
 ];
 const LEADERBOARDS_TOTAL = [
+  {title:'Overall Rating',  stat:'OVR',  key:'OVR',  pct:false,asc:false,isOvr:true},
   {title:'Total Points',    stat:'PTS',  key:'PPG',  pct:false,asc:false},
   {title:'Total Assists',   stat:'AST',  key:'APG',  pct:false,asc:false},
   {title:'Total Rebounds',  stat:'REB',  key:'RPG',  pct:false,asc:false},
@@ -1200,34 +1215,50 @@ function buildLeaderboards(){
 
   grid.innerHTML=boards.map(lb=>{
     const isTotal = leaderMode==='total' && !lb.noMul && !lb.pct;
+    const valOf = (p) => lb.isOvr ? ovrVal(p, isTotal?'total':'avg') : (isTotal?totalVal(p,lb.key):(p.stats[lb.key]??0));
     const sorted=[...players].filter(p=>p.stats&&p.stats.GP>=5).sort((a,b)=>{
-      const av=isTotal?totalVal(a,lb.key):(a.stats[lb.key]??0);
-      const bv=isTotal?totalVal(b,lb.key):(b.stats[lb.key]??0);
+      const av=valOf(a);
+      const bv=valOf(b);
       return lb.asc?av-bv:bv-av;
     }).slice(0,10);
     if(!sorted.length)return'';
     const badge=isTotal?`<span class="total-badge">${lb.stat}</span>`:`<span class="lb-table-stat">${lb.stat}</span>`;
     const rows=sorted.map((p,i)=>{
       const match=q&&p.username.toLowerCase().includes(q);
-      const dispVal=isTotal?totalVal(p,lb.key):(lb.noMul?p.stats[lb.key]:p.stats[lb.key]);
+      const dispVal=valOf(p);
       return`<div class="lb-row ${i===0?'top':''}"><span class="lb-rank ${RANK_COLORS[i]||''}">${i+1}</span><span class="lb-name ${match?'search-match':''}">${p.username}</span><span class="lb-gp">${p.stats.GP}</span><span class="lb-val">${fmt(dispVal,lb.pct)}</span></div>`;
     }).join('');
     return`<div class="lb-table"><div class="lb-table-hd"><div class="lb-table-left"><div class="lb-strip"></div><span class="lb-table-title">${lb.title}</span></div>${badge}</div><div class="lb-col-hd"><span>#</span><span>Player</span><span>GP</span><span>${lb.stat}</span></div>${rows}</div>`;
   }).join('');
 }
 
+function updateSortLabels(){
+  const sel=document.getElementById('f-sort');
+  const isTotal=cardMode==='total';
+  const labels={OVR:'Best Overall',PPG:isTotal?'PTS':'PPG',APG:isTotal?'AST':'APG',RPG:isTotal?'REB':'RPG',SPG:isTotal?'STL':'SPG',BPG:isTotal?'BLK':'BPG',GP:'GP'};
+  Array.from(sel.options).forEach(opt=>{opt.textContent=`Sort: ${labels[opt.value]??opt.value}`});
+}
+
 function buildPlayerCards(){
+  updateSortLabels();
   const grid=document.getElementById('player-grid');
   const q=document.getElementById('f-player-search').value.trim().toLowerCase();
   const sortKey=document.getElementById('f-sort').value;
   let players=allPlayers.filter(p=>p.stats&&p.stats.GP>0);
   if(q)players=players.filter(p=>p.username.toLowerCase().includes(q));
-  players.sort((a,b)=>(b.stats[sortKey]??0)-(a.stats[sortKey]??0));
+  players.sort((a,b)=>{
+    if(sortKey==='GP') return (b.stats.GP??0)-(a.stats.GP??0);
+    if(sortKey==='OVR') return ovrVal(b,cardMode)-ovrVal(a,cardMode);
+    const av=cardMode==='total'?totalVal(a,sortKey):(a.stats[sortKey]??0);
+    const bv=cardMode==='total'?totalVal(b,sortKey):(b.stats[sortKey]??0);
+    return bv-av;
+  });
   document.getElementById('players-ct').textContent=`${players.length} player${players.length!==1?'s':''}`;
   if(!players.length){grid.innerHTML=emptyHTML(q?'No Results':'No Data Yet',q?`No players matching "${q}"`:'Stats will appear after the first game.');return}
 
   // Stat definitions: avg stats + derived totals
   const AVG_STATS = [
+    {label:'OVR',key:'OVR',pct:false,isOvr:true},
     {label:'PPG',key:'PPG',pct:false},{label:'APG',key:'APG',pct:false},
     {label:'RPG',key:'RPG',pct:false},{label:'SPG',key:'SPG',pct:false},
     {label:'BPG',key:'BPG',pct:false},{label:'TOPG',key:'TOPG',pct:false},
@@ -1235,6 +1266,7 @@ function buildPlayerCards(){
     {label:'FT%',key:'FT',pct:true},
   ];
   const TOT_STATS = [
+    {label:'OVR',key:'OVR',pct:false,isOvr:true},
     {label:'PTS',key:'PPG',total:true},{label:'AST',key:'APG',total:true},
     {label:'REB',key:'RPG',total:true},{label:'STL',key:'SPG',total:true},
     {label:'BLK',key:'BPG',total:true},{label:'TOV',key:'TOPG',total:true},
@@ -1245,7 +1277,7 @@ function buildPlayerCards(){
 
   grid.innerHTML=players.map(p=>{
     const cells=statSet.map(s=>{
-      const v=s.total?totalVal(p,s.key):(p.stats[s.key]??0);
+      const v=s.isOvr?ovrVal(p,cardMode):(s.total?totalVal(p,s.key):(p.stats[s.key]??0));
       return`<div class="player-stat-cell"><div class="player-stat-label">${s.label}</div><div class="player-stat-val">${fmt(v,s.pct||false)}</div></div>`;
     }).join('');
     const modeLabel=cardMode==='total'?'<span style="font-size:9px;color:var(--am);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-left:4px">TOT</span>':'';
