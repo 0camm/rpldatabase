@@ -1,4 +1,5 @@
 import { getClient } from './_redis.js';
+import { logAudit } from './_audit.js';
 
 const ADMIN_PASS = process.env.ADMIN_PASS;
 
@@ -20,7 +21,17 @@ export default async function handler(req, res) {
 
     // 1 command to check existence
     const existing = await kv.hget('players', safeUsername);
-    if (!existing) return res.status(404).json({ error: `Player "${safeUsername}" not found` });
+    if (!existing) {
+      await logAudit({
+        action: 'EDIT_PLAYER',
+        status: 'failure',
+        target: safeUsername,
+        error: `Player "${safeUsername}" not found`,
+      });
+      return res.status(404).json({ error: `Player "${safeUsername}" not found` });
+    }
+
+    const prevRecord = typeof existing === 'string' ? JSON.parse(existing) : existing;
 
     const record = {
       username: safeUsername,
@@ -47,9 +58,23 @@ export default async function handler(req, res) {
       kv.set('meta:updatedAt', new Date().toISOString()),
     ]);
 
+    await logAudit({
+      action: 'EDIT_PLAYER',
+      status: 'success',
+      target: safeUsername,
+      prevValue: prevRecord.stats || null,
+      newValue: record.stats,
+    });
+
     return res.status(200).json({ success: true, player: record });
   } catch (err) {
     console.error('POST /api/edit error:', err);
+    await logAudit({
+      action: 'EDIT_PLAYER',
+      status: 'failure',
+      target: safeUsername,
+      error: 'Internal server error',
+    });
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
