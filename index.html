@@ -639,6 +639,110 @@ select.fc{
   .player-card:hover{border-color:var(--b);transform:none;box-shadow:none}
   .lb-table:hover{border-color:var(--b)}
 }
+
+/* ── AUDIT LOG ── */
+.audit-section{
+  background:var(--bg);border:1px solid var(--b);
+  border-radius:10px;overflow:hidden;
+}
+.audit-section-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:10px 14px;border-bottom:1px solid var(--b);
+  background:var(--s2);
+}
+.audit-section-hd-left{display:flex;align-items:center;gap:10px}
+.audit-section-icon{
+  width:26px;height:26px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:rgba(91,156,246,.1);color:var(--bl);
+}
+.audit-section-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx)}
+.audit-section-desc{font-size:10px;color:var(--mu);margin-top:1px}
+.audit-refresh-btn{
+  background:var(--s3);border:1px solid var(--b);border-radius:6px;
+  color:var(--mu);font-family:'Inter',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;cursor:pointer;
+  transition:border-color .15s,color .15s;white-space:nowrap;
+}
+.audit-refresh-btn:hover{border-color:var(--bl);color:var(--bl)}
+.audit-refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.audit-body{max-height:360px;overflow-y:auto;padding:8px 0}
+.audit-body::-webkit-scrollbar{width:4px}
+.audit-body::-webkit-scrollbar-track{background:transparent}
+.audit-body::-webkit-scrollbar-thumb{background:var(--mu2);border-radius:2px}
+
+.audit-empty{
+  text-align:center;padding:32px 16px;
+  font-size:12px;color:var(--mu);
+}
+.audit-loading{
+  text-align:center;padding:20px;
+  font-size:11px;color:var(--mu);
+  font-family:'JetBrains Mono',monospace;
+}
+
+.audit-entry{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px 10px;
+  padding:9px 14px;
+  border-bottom:1px solid var(--b2);
+  transition:background .1s;
+  align-items:start;
+}
+.audit-entry:last-child{border-bottom:none}
+.audit-entry:hover{background:rgba(255,255,255,.014)}
+.audit-entry.success{}
+.audit-entry.failure{background:rgba(232,0,29,.03)}
+
+.audit-action-row{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  grid-column:1;
+}
+.audit-action-badge{
+  font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;flex-shrink:0;
+}
+.audit-action-badge.edit{background:rgba(91,156,246,.12);color:var(--bl);border:1px solid rgba(91,156,246,.25)}
+.audit-action-badge.remove{background:rgba(245,166,35,.12);color:var(--am);border:1px solid rgba(245,166,35,.25)}
+.audit-action-badge.reset{background:rgba(232,0,29,.12);color:var(--red);border:1px solid rgba(232,0,29,.25)}
+
+.audit-status-dot{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:1px;
+}
+.audit-status-dot.success{background:var(--gr)}
+.audit-status-dot.failure{background:var(--red)}
+
+.audit-target{
+  font-size:12px;font-weight:600;color:var(--tx);
+  font-family:'JetBrains Mono',monospace;
+}
+.audit-time{
+  font-size:10px;color:var(--mu);font-family:'JetBrains Mono',monospace;
+  grid-column:2;grid-row:1;text-align:right;white-space:nowrap;margin-top:2px;
+}
+.audit-detail{
+  font-size:11px;color:var(--mu2);margin-top:2px;
+  grid-column:1/-1;line-height:1.5;
+}
+.audit-diff{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;
+}
+.audit-diff-stat{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  background:var(--s2);border:1px solid var(--b);
+  border-radius:4px;padding:2px 7px;color:var(--tx2);
+}
+.audit-diff-stat .stat-key{color:var(--mu)}
+.audit-diff-stat .stat-old{color:#f87171;text-decoration:line-through;margin-right:3px}
+.audit-diff-stat .stat-new{color:var(--gr)}
+.audit-error-tag{
+  font-size:10px;color:#f87171;background:var(--red-dim);
+  border:1px solid var(--red-mid);border-radius:4px;
+  padding:2px 8px;font-family:'JetBrains Mono',monospace;
+  margin-top:4px;display:inline-block;
+}
 </style>
 </head>
 <body>
@@ -857,6 +961,31 @@ select.fc{
           <div class="panel-msg" id="reset-msg"></div>
         </div>
       </div>
+
+      <!-- AUDIT LOG -->
+      <div class="audit-section">
+        <div class="audit-section-hd">
+          <div class="audit-section-hd-left">
+            <div class="audit-section-icon">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <rect x="2" y="1.5" width="10" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <line x1="4.5" y1="4.5" x2="9.5" y2="4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="4.5" y1="7" x2="9.5" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="4.5" y1="9.5" x2="7" y2="9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="audit-section-label">Audit Log</div>
+              <div class="audit-section-desc">All admin actions from the last 24 hours.</div>
+            </div>
+          </div>
+          <button class="audit-refresh-btn" id="audit-refresh-btn">Refresh</button>
+        </div>
+        <div class="audit-body" id="audit-body">
+          <div class="audit-loading">Loading…</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -889,6 +1018,8 @@ const POLL = 30000;
 let allPlayers = [], searchQuery = '', lastUpdatedAt = null, adminPassword = '', isAuthed = false;
 let leaderMode = 'avg'; // 'avg' | 'total'
 let cardMode   = 'avg';
+let auditLogs  = [];
+let auditLoading = false;
 
 // Helper: compute total for a stat (pct stats can't be totalled meaningfully, so they stay as avg)
 function totalVal(p, key) {
@@ -954,6 +1085,94 @@ function toast(msg,c='red',dur=5000){const t=Object.assign(document.createElemen
 function setLive(v){const c=document.getElementById('live-chip'),l=document.getElementById('live-lbl');c.classList.toggle('on',v);l.textContent=v?'Live':'Offline'}
 function setSync(iso){document.getElementById('last-sync').textContent=iso?`Synced ${timeAgo(iso)}`:''}
 
+/* ── AUDIT LOG ── */
+function auditActionClass(action){
+  if(action==='EDIT_PLAYER') return 'edit';
+  if(action==='REMOVE_PLAYER') return 'remove';
+  if(action==='RESET_ALL') return 'reset';
+  return 'edit';
+}
+function auditActionLabel(action){
+  if(action==='EDIT_PLAYER') return 'Edit';
+  if(action==='REMOVE_PLAYER') return 'Remove';
+  if(action==='RESET_ALL') return 'Reset All';
+  return action;
+}
+function fmtAuditTime(ts){
+  const d=new Date(ts);
+  const now=new Date();
+  const diffMs=now-d;
+  const diffS=Math.floor(diffMs/1000);
+  if(diffS<60) return`${diffS}s ago`;
+  if(diffS<3600) return`${Math.floor(diffS/60)}m ago`;
+  if(diffS<86400) return`${Math.floor(diffS/3600)}h ago`;
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+function fmtAuditTimeFull(ts){
+  return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function buildStatDiff(prev,next){
+  if(!prev||!next) return '';
+  const keys=Object.keys({...prev,...next});
+  const changed=keys.filter(k=>prev[k]!==next[k]);
+  if(!changed.length) return '<div style="font-size:10px;color:var(--mu);margin-top:3px">No stat changes detected.</div>';
+  return '<div class="audit-diff">'+changed.map(k=>{
+    return`<span class="audit-diff-stat"><span class="stat-key">${k} </span><span class="stat-old">${prev[k]??'—'}</span><span class="stat-new">${next[k]??'—'}</span></span>`;
+  }).join('')+'</div>';
+}
+function renderAuditLogs(){
+  const el=document.getElementById('audit-body');
+  if(!el) return;
+  if(auditLoading){el.innerHTML='<div class="audit-loading">Fetching logs…</div>';return}
+  if(!auditLogs.length){el.innerHTML='<div class="audit-empty">No admin actions in the last 24 hours.</div>';return}
+  el.innerHTML=auditLogs.map(log=>{
+    const cls=auditActionClass(log.action);
+    const lbl=auditActionLabel(log.action);
+    const status=log.status||'success';
+    let detail='';
+    if(log.action==='RESET_ALL'){
+      const cnt=log.prevValue?.playerCount??'?';
+      const names=Array.isArray(log.prevValue?.players)&&log.prevValue.players.length?log.prevValue.players.slice(0,8).join(', ')+(log.prevValue.players.length>8?` +${log.prevValue.players.length-8} more`:''):'';
+      detail=`<div class="audit-detail">Wiped ${cnt} player record${cnt!==1?'s':''}${names?`: <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mu)">${names}</span>`:''}.</div>`;
+    } else if(log.action==='REMOVE_PLAYER'){
+      if(status==='success'&&log.prevValue){
+        const gp=log.prevValue.GP??'?';
+        detail=`<div class="audit-detail">Removed player with ${gp} GP on record.</div>`;
+      } else if(status==='failure'){
+        detail=`<div class="audit-detail"><span class="audit-error-tag">${log.error||'Unknown error'}</span></div>`;
+      }
+    } else if(log.action==='EDIT_PLAYER'){
+      if(status==='success'){
+        detail=buildStatDiff(log.prevValue,log.newValue);
+        if(detail) detail=`<div class="audit-detail">Stat changes:${detail}</div>`;
+      } else {
+        detail=`<div class="audit-detail"><span class="audit-error-tag">${log.error||'Unknown error'}</span></div>`;
+      }
+    }
+    return`<div class="audit-entry ${status}" title="${fmtAuditTimeFull(log.ts)}">
+      <div class="audit-action-row">
+        <div class="audit-status-dot ${status}"></div>
+        <span class="audit-action-badge ${cls}">${lbl}</span>
+        <span class="audit-target">${log.target||''}</span>
+      </div>
+      <div class="audit-time">${fmtAuditTime(log.ts)}</div>
+      ${detail}
+    </div>`;
+  }).join('');
+}
+async function fetchAuditLogs(){
+  if(!adminPassword) return;
+  auditLoading=true;renderAuditLogs();
+  document.getElementById('audit-refresh-btn').disabled=true;
+  try{
+    const res=await fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
+    const json=await res.json();
+    if(res.ok) auditLogs=json.logs||[];
+    else auditLogs=[];
+  }catch(e){auditLogs=[];console.error('Audit fetch error:',e)}
+  finally{auditLoading=false;renderAuditLogs();document.getElementById('audit-refresh-btn').disabled=false}
+}
+
 async function fetchData(){
   try{
     const res=await fetch('/api/averages',{cache:'no-store'});
@@ -974,14 +1193,14 @@ function buildLeaderboards(){
   const grid=document.getElementById('lb-grid');
   const q=document.getElementById('f-leader-search').value.trim().toLowerCase();
   const players=allPlayers;
-  const active=players.filter(p=>p.stats&&p.stats.GP>0);
-  document.getElementById('leaders-ct').textContent=`${active.length} player${active.length!==1?'s':''}`;
+  const active=players.filter(p=>p.stats&&p.stats.GP>=5);
+  document.getElementById('leaders-ct').textContent=`${active.length} player${active.length!==1?'s':''} (5+ GP)`;
   const boards=getLeaderboards();
   if(!players.length){grid.innerHTML=emptyHTML('No Data Yet','Stats will appear after the first game is committed.');return}
 
   grid.innerHTML=boards.map(lb=>{
     const isTotal = leaderMode==='total' && !lb.noMul && !lb.pct;
-    const sorted=[...players].filter(p=>p.stats&&p.stats.GP>0).sort((a,b)=>{
+    const sorted=[...players].filter(p=>p.stats&&p.stats.GP>=5).sort((a,b)=>{
       const av=isTotal?totalVal(a,lb.key):(a.stats[lb.key]??0);
       const bv=isTotal?totalVal(b,lb.key):(b.stats[lb.key]??0);
       return lb.asc?av-bv:bv-av;
