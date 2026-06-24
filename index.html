@@ -480,7 +480,7 @@ select.fc{
 .admin-section-desc{font-size:10px;color:var(--mu);margin-top:1px}
 .admin-section-body{padding:12px 14px}
 
-.input-row{display:flex;gap:7px;align-items:stretch}
+.input-row{display:flex;gap:7px;align-items:stretch;margin-bottom:8px}
 .field-input{
   flex:1;background:var(--s2);border:1px solid var(--b);
   border-radius:7px;padding:9px 12px;
@@ -510,6 +510,17 @@ select.fc{
 }
 .danger-btn:hover{background:rgba(232,0,29,.15);border-color:rgba(232,0,29,.4)}
 .danger-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.danger-btn-sm{
+  background:rgba(232,0,29,.08);border:1px solid rgba(232,0,29,.2);
+  border-radius:7px;padding:0 14px;color:var(--red);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  cursor:pointer;transition:background .15s,border-color .15s;
+  white-space:nowrap;min-height:38px;flex-shrink:0;
+}
+.danger-btn-sm:hover{background:rgba(232,0,29,.15);border-color:rgba(232,0,29,.4)}
+.danger-btn-sm:disabled{opacity:.4;cursor:not-allowed}
 
 .panel-msg{
   font-size:12px;margin-top:10px;padding:9px 12px;
@@ -1070,7 +1081,10 @@ select.fc{
             <select class="field-input" id="restore-archive-select">
               <option value="">Loading archives…</option>
             </select>
-            <button class="action-btn" id="modal-restore">Restore</button>
+          </div>
+          <div class="input-row">
+            <button class="action-btn" id="modal-restore" style="flex:1">Restore</button>
+            <button class="danger-btn-sm" id="modal-archive-delete" style="flex:1">Delete</button>
           </div>
           <div class="panel-msg" id="restore-msg"></div>
         </div>
@@ -1624,6 +1638,30 @@ restorePanelBtn.addEventListener('click',async()=>{
     showPanelMsg('restore-msg','Restore failed: '+e.message,'error');
   }finally{
     restorePanelBtn.disabled=false;restorePanelBtn.textContent='Restore';
+  }
+});
+
+const deleteArchiveBtn=document.getElementById('modal-archive-delete');
+deleteArchiveBtn.addEventListener('click',async()=>{
+  clearPanelMsg('restore-msg');
+  const sel=document.getElementById('restore-archive-select');
+  const id=sel.value;
+  if(!id){showPanelMsg('restore-msg','Pick an archived season first.','error');return}
+  const label=sel.options[sel.selectedIndex].textContent;
+  if(!confirm(`Permanently delete "${label}"?\n\nThis cannot be undone — the snapshot will be gone for good.`))return;
+  deleteArchiveBtn.disabled=true;deleteArchiveBtn.textContent='Deleting…';
+  try{
+    const res=await fetch(`/api/archive?id=${encodeURIComponent(id)}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
+    const json=await res.json();
+    if(!res.ok)throw new Error(json.error||'Delete failed');
+    showPanelMsg('restore-msg',`✓ "${label}" deleted.`,'success');
+    toast(`🗑️ "${label}" deleted`,'amber',4000);
+    await loadArchives();
+    fetchAuditLogs();
+  }catch(e){
+    showPanelMsg('restore-msg','Delete failed: '+e.message,'error');
+  }finally{
+    deleteArchiveBtn.disabled=false;deleteArchiveBtn.textContent='Delete';
   }
 });
 
