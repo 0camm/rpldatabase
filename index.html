@@ -1059,7 +1059,7 @@ select.fc{
             </div>
             <div>
               <div class="audit-section-label">Audit Log</div>
-              <div class="audit-section-desc">All admin actions from the last 24 hours.</div>
+              <div class="audit-section-desc">All admin actions, most recent first.</div>
             </div>
           </div>
           <button class="audit-refresh-btn" id="audit-refresh-btn">Refresh</button>
@@ -1222,7 +1222,7 @@ function renderAuditLogs(){
   const el=document.getElementById('audit-body');
   if(!el) return;
   if(auditLoading){el.innerHTML='<div class="audit-loading">Fetching logs…</div>';return}
-  if(!auditLogs.length){el.innerHTML='<div class="audit-empty">No admin actions in the last 24 hours.</div>';return}
+  if(!auditLogs.length){el.innerHTML='<div class="audit-empty">No admin actions recorded yet.</div>';return}
   el.innerHTML=auditLogs.map(log=>{
     const cls=auditActionClass(log.action);
     const lbl=auditActionLabel(log.action);

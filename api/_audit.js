@@ -2,7 +2,6 @@ import { getClient } from './_redis.js';
 
 const AUDIT_KEY = 'audit:logs';
 const MAX_LOGS = 200;          // hard cap so the list never grows unbounded
-const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours, matches the UI's stated window
 
 /**
  * Append one audit entry to the shared log list.
@@ -41,14 +40,12 @@ export async function logAudit(entry) {
 }
 
 /**
- * Fetch logs from the last 24 hours (newest first), capped at MAX_LOGS.
+ * Fetch all stored logs (newest first), capped at MAX_LOGS.
  */
 export async function getRecentAuditLogs() {
   const kv = await getClient();
   const raw = await kv.lrange(AUDIT_KEY, 0, MAX_LOGS - 1);
   if (!raw || !raw.length) return [];
-
-  const cutoff = Date.now() - WINDOW_MS;
 
   return raw
     .map(v => {
@@ -58,5 +55,5 @@ export async function getRecentAuditLogs() {
         return null;
       }
     })
-    .filter(log => log && new Date(log.ts).getTime() >= cutoff);
+    .filter(Boolean);
 }
