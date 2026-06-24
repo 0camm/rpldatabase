@@ -743,6 +743,46 @@ select.fc{
   padding:2px 8px;font-family:'JetBrains Mono',monospace;
   margin-top:4px;display:inline-block;
 }
+
+/* ── ARCHIVE VIEW ── */
+.archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:4px}
+.arc-card{background:var(--s1);border:1px solid var(--b);border-radius:11px;overflow:hidden;position:relative;cursor:pointer;transition:border-color .15s,transform .15s}
+.arc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--red),transparent 60%)}
+.arc-card:hover{border-color:var(--red-edge);transform:translateY(-2px)}
+.arc-hd{padding:13px 15px 11px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.arc-season{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.05em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-badge{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);background:var(--s3);border:1px solid var(--b);border-radius:20px;padding:2px 8px;flex-shrink:0}
+.arc-body{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.arc-count{font-size:12px;color:var(--tx2)}
+.arc-count b{color:var(--tx);font-weight:700}
+.arc-date{font-size:10px;color:var(--mu);font-family:'JetBrains Mono',monospace}
+.arc-empty{padding:60px 20px;text-align:center;color:var(--mu);font-size:13px;grid-column:1/-1}
+
+/* archive detail modal */
+.amg{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:12px;opacity:0;pointer-events:none;transition:opacity .2s}
+.amg.open{opacity:1;pointer-events:all}
+.amodal{background:var(--s1);border:1px solid var(--b);border-radius:14px;overflow:hidden;width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;transform:translateY(12px) scale(.97);transition:transform .2s;box-shadow:0 28px 72px rgba(0,0,0,.8);position:relative}
+.amodal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent 60%);z-index:2}
+.amg.open .amodal{transform:none}
+.ahd{padding:16px 20px;background:var(--s2);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.ahd-title{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:.05em;color:#fff}
+.ahd-sub{font-size:11px;color:var(--mu);margin-top:2px}
+.aclose{background:var(--s3);border:1px solid var(--b);cursor:pointer;color:var(--mu);font-size:16px;line-height:1;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:all .13s;flex-shrink:0}
+.aclose:hover{color:#fff;background:var(--s4);border-color:rgba(255,255,255,.12)}
+.abody{overflow-y:auto;flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.afilter{background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:9px 12px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:6px}
+.afilter:focus{border-color:var(--red-edge)}
+.aplayer-row{display:grid;grid-template-columns:1fr repeat(7,52px);align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--b2);font-size:12px}
+.aplayer-row:last-child{border-bottom:none}
+.aplayer-name{font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aplayer-stat{text-align:center;font-family:'JetBrains Mono',monospace;color:var(--tx2)}
+.aplayer-hd{display:grid;grid-template-columns:1fr repeat(7,52px);gap:6px;padding:0 10px 8px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);border-bottom:1px solid var(--b)}
+.aplayer-hd span{text-align:center}
+.aplayer-hd span:first-child{text-align:left}
+@media(max-width:640px){
+  .aplayer-row,.aplayer-hd{grid-template-columns:1fr repeat(4,42px)}
+  .aplayer-stat:nth-child(n+6),.aplayer-hd span:nth-child(n+6){display:none}
+}
 </style>
 </head>
 <body>
@@ -795,6 +835,7 @@ select.fc{
     <div class="tabs">
       <button class="tab-btn active" data-tab="leaders">League Leaders</button>
       <button class="tab-btn" data-tab="players">Player Cards</button>
+      <button class="tab-btn" data-tab="archive">Archive</button>
     </div>
 
     <!-- LEADERS -->
@@ -858,6 +899,42 @@ select.fc{
       <div class="player-grid" id="player-grid"></div>
     </div>
 
+    <!-- ARCHIVE -->
+    <div class="view" id="view-archive">
+      <div class="sec-hd">
+        <div class="sec-hd-top">
+          <span class="sec-title">Archived Seasons</span>
+          <span class="sec-ct" id="archive-ct">0 seasons</span>
+          <div class="sec-rule"></div>
+        </div>
+      </div>
+      <div class="archive-grid" id="archive-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ARCHIVE DETAIL MODAL -->
+<div class="amg" id="archive-modal-bg">
+  <div class="amodal">
+    <div class="ahd">
+      <div>
+        <div class="ahd-title" id="am-title">Season</div>
+        <div class="ahd-sub" id="am-sub"></div>
+      </div>
+      <button class="aclose" id="am-close" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="abody">
+      <input class="afilter" id="am-filter" placeholder="Filter player…" autocomplete="off" spellcheck="false">
+      <div class="aplayer-hd">
+        <span>Player</span><span>GP</span><span>PPG</span><span>APG</span><span>RPG</span><span>SPG</span><span>BPG</span><span>FG%</span>
+      </div>
+      <div id="am-list"></div>
+    </div>
   </div>
 </div>
 
@@ -956,10 +1033,13 @@ select.fc{
           </div>
           <div>
             <div class="admin-section-label">Danger Zone</div>
-            <div class="admin-section-desc">Irreversible — wipes all player records for a new season.</div>
+            <div class="admin-section-desc">Archives current stats, then wipes all player records for a new season.</div>
           </div>
         </div>
         <div class="admin-section-body">
+          <div class="input-row">
+            <input class="field-input" type="text" id="archive-season-label" placeholder="Season label (e.g. Season 11)" autocomplete="off" spellcheck="false">
+          </div>
           <button class="danger-btn" id="modal-reset">Reset All Stats &amp; Start New Season</button>
           <div class="panel-msg" id="reset-msg"></div>
         </div>
@@ -1023,6 +1103,7 @@ let leaderMode = 'avg'; // 'avg' | 'total'
 let cardMode   = 'avg';
 let auditLogs  = [];
 let auditLoading = false;
+let archives = [], archivesLoading = false, archivesLoaded = false;
 
 // Helper: compute total for a stat (pct stats can't be totalled meaningfully, so they stay as avg)
 function totalVal(p, key) {
@@ -1289,12 +1370,91 @@ function buildPlayerCards(){
 
 function emptyHTML(title,desc){return`<div class="empty-state"><div class="empty-state-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#52526a" stroke-width="1.4"/><line x1="11" y1="7" x2="11" y2="11" stroke="#52526a" stroke-width="1.4" stroke-linecap="round"/><circle cx="11" cy="14.5" r=".8" fill="#52526a"/></svg></div><h3>${title}</h3><p>${desc}</p></div>`}
 
+function fmtArchiveDate(ts){
+  if(!ts)return'';
+  const d=new Date(ts);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+async function loadArchives(){
+  archivesLoading=true;renderArchiveGrid();
+  try{
+    const res=await fetch('/api/archives',{cache:'no-store'});
+    const json=await res.json();
+    archives=json.archives||[];
+  }catch(e){archives=[];console.error('Archive fetch error:',e)}
+  finally{archivesLoading=false;archivesLoaded=true;renderArchiveGrid()}
+}
+function renderArchiveGrid(){
+  const grid=document.getElementById('archive-grid');
+  if(!grid)return;
+  document.getElementById('archive-ct').textContent=`${archives.length} season${archives.length!==1?'s':''}`;
+  if(archivesLoading){grid.innerHTML='<div class="arc-empty">Loading archives…</div>';return}
+  if(!archives.length){grid.innerHTML='<div class="arc-empty">No archived seasons yet. Use Admin → Reset to archive the current season before wiping.</div>';return}
+  grid.innerHTML=archives.map(a=>{
+    const label=a.season||`Archived ${fmtArchiveDate(a.archivedAt)}`;
+    return`<div class="arc-card" data-id="${a.id}">
+      <div class="arc-hd"><span class="arc-season">${label}</span><span class="arc-badge">Archive</span></div>
+      <div class="arc-body">
+        <span class="arc-count"><b>${a.playerCount}</b> player${a.playerCount!==1?'s':''}</span>
+        <span class="arc-date">${fmtArchiveDate(a.archivedAt)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.arc-card').forEach(card=>{
+    card.addEventListener('click',()=>openArchiveDetail(card.dataset.id));
+  });
+}
+let currentArchiveDetail=null;
+async function openArchiveDetail(id){
+  const bg=document.getElementById('archive-modal-bg');
+  document.getElementById('am-title').textContent='Loading…';
+  document.getElementById('am-sub').textContent='';
+  document.getElementById('am-list').innerHTML='<div class="arc-empty">Loading…</div>';
+  document.getElementById('am-filter').value='';
+  bg.classList.add('open');document.body.style.overflow='hidden';
+  try{
+    const res=await fetch(`/api/archive?id=${encodeURIComponent(id)}`,{cache:'no-store'});
+    const json=await res.json();
+    if(!res.ok)throw new Error(json.error||'Failed to load archive');
+    currentArchiveDetail=json.archive;
+    const label=currentArchiveDetail.season||`Archived ${fmtArchiveDate(currentArchiveDetail.archivedAt)}`;
+    document.getElementById('am-title').textContent=label;
+    document.getElementById('am-sub').textContent=`Archived ${fmtArchiveDate(currentArchiveDetail.archivedAt)} · ${currentArchiveDetail.players.length} players`;
+    renderArchiveDetailList();
+  }catch(e){
+    document.getElementById('am-title').textContent='Error';
+    document.getElementById('am-list').innerHTML=`<div class="arc-empty">${e.message}</div>`;
+  }
+}
+function renderArchiveDetailList(){
+  const list=document.getElementById('am-list');
+  if(!currentArchiveDetail){return}
+  const q=document.getElementById('am-filter').value.trim().toLowerCase();
+  let players=[...currentArchiveDetail.players];
+  if(q)players=players.filter(p=>p.username.toLowerCase().includes(q));
+  players.sort((a,b)=>(b.stats?.PPG??0)-(a.stats?.PPG??0));
+  if(!players.length){list.innerHTML=emptyHTML('No Results',`No players matching "${q}"`);return}
+  list.innerHTML=players.map(p=>`<div class="aplayer-row">
+    <span class="aplayer-name">${p.username}</span>
+    <span class="aplayer-stat">${p.stats?.GP??0}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.PPG??0)}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.APG??0)}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.RPG??0)}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.SPG??0)}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.BPG??0)}</span>
+    <span class="aplayer-stat">${fmt(p.stats?.FG??0,true)}</span>
+  </div>`).join('');
+}
+document.getElementById('am-filter').addEventListener('input',()=>renderArchiveDetailList());
+document.getElementById('am-close').addEventListener('click',()=>{document.getElementById('archive-modal-bg').classList.remove('open');document.body.style.overflow=''});
+document.getElementById('archive-modal-bg').addEventListener('click',e=>{if(e.target.id==='archive-modal-bg'){e.currentTarget.classList.remove('open');document.body.style.overflow=''}});
+
 document.getElementById('mode-avg').addEventListener('click',()=>{leaderMode='avg';document.getElementById('mode-avg').classList.add('active');document.getElementById('mode-total').classList.remove('active');buildLeaderboards()});
 document.getElementById('mode-total').addEventListener('click',()=>{leaderMode='total';document.getElementById('mode-total').classList.add('active');document.getElementById('mode-avg').classList.remove('active');buildLeaderboards()});
 document.getElementById('card-mode-avg').addEventListener('click',()=>{cardMode='avg';document.getElementById('card-mode-avg').classList.add('active');document.getElementById('card-mode-total').classList.remove('active');buildPlayerCards()});
 document.getElementById('card-mode-total').addEventListener('click',()=>{cardMode='total';document.getElementById('card-mode-total').classList.add('active');document.getElementById('card-mode-avg').classList.remove('active');buildPlayerCards()});
 
-document.querySelectorAll('.tab-btn').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));tab.classList.add('active');document.getElementById('view-'+tab.dataset.tab).classList.add('active')})});
+document.querySelectorAll('.tab-btn').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));tab.classList.add('active');document.getElementById('view-'+tab.dataset.tab).classList.add('active');if(tab.dataset.tab==='archive'&&!archivesLoaded)loadArchives()})});
 
 document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;document.getElementById('f-leader-search').value=searchQuery;document.getElementById('f-player-search').value=searchQuery;render()});
 document.getElementById('f-leader-search').addEventListener('input',()=>buildLeaderboards());
@@ -1339,7 +1499,7 @@ removeUsernameInput.addEventListener('keydown',e=>{if(e.key==='Enter')removeBtn.
 removeBtn.addEventListener('click',async()=>{clearPanelMsg('remove-msg');const username=removeUsernameInput.value.trim();if(!username){showPanelMsg('remove-msg','Enter a username to remove.','error');return}removeBtn.disabled=true;removeBtn.textContent='Removing…';try{const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,username})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('remove-msg',`✓ "${json.deleted}" removed successfully.`,'success');allPlayers=allPlayers.filter(p=>p.username.toLowerCase()!==json.deleted.toLowerCase());removeUsernameInput.value='';render();toast(`${json.deleted} removed`,'amber',4000);fetchAuditLogs()}catch(e){showPanelMsg('remove-msg',e.message||'Player not found or error occurred.','error')}finally{removeBtn.disabled=false;removeBtn.textContent='Remove'}});
 
 const resetBtn=document.getElementById('modal-reset');
-resetBtn.addEventListener('click',async()=>{clearPanelMsg('reset-msg');if(!confirm('⚠️ This will permanently delete ALL player stats. This cannot be undone.\n\nAre you absolutely sure?'))return;resetBtn.disabled=true;resetBtn.textContent='Resetting…';try{const res=await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('reset-msg',`✓ Reset complete. ${json.deleted} records deleted.`,'success');allPlayers=[];render();toast('All stats reset','amber',5000);fetchAuditLogs();setTimeout(closeAdmin,2500)}catch(e){showPanelMsg('reset-msg','Reset failed. Check your session.','error')}finally{resetBtn.disabled=false;resetBtn.textContent='Reset All Stats & Start New Season'}});
+resetBtn.addEventListener('click',async()=>{clearPanelMsg('reset-msg');if(!confirm('⚠️ This will archive the current season, then permanently wipe ALL player stats for a new season.\n\nAre you absolutely sure?'))return;resetBtn.disabled=true;resetBtn.textContent='Archiving & resetting…';try{const season=document.getElementById('archive-season-label').value.trim();const res=await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,season})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('reset-msg',`✓ ${json.archived?'Season archived. ':''}${json.deleted} record${json.deleted!==1?'s':''} reset.`,'success');allPlayers=[];render();document.getElementById('archive-season-label').value='';toast(json.archived?'📦 Season archived — new season started':'All stats reset','amber',5000);fetchAuditLogs();loadArchives();setTimeout(closeAdmin,2500)}catch(e){showPanelMsg('reset-msg','Reset failed. Check your session.','error')}finally{resetBtn.disabled=false;resetBtn.textContent='Reset All Stats & Start New Season'}});
 
 fetchData();
 setInterval(()=>{fetchData();if(lastUpdatedAt)setSync(lastUpdatedAt)},POLL);
