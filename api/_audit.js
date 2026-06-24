@@ -9,7 +9,7 @@ const MAX_LOGS = 200;          // hard cap so the list never grows unbounded
  * admin action, so errors are swallowed (and reported to console).
  *
  * @param {object} entry
- * @param {'EDIT_PLAYER'|'REMOVE_PLAYER'|'RESET_ALL'|'RESTORE_ARCHIVE'} entry.action
+ * @param {'EDIT_PLAYER'|'REMOVE_PLAYER'|'RESET_ALL'|'RESTORE_ARCHIVE'|'DELETE_ARCHIVE'} entry.action
  * @param {'success'|'failure'} entry.status
  * @param {string} [entry.target]      - username or summary shown in the UI
  * @param {object} [entry.prevValue]   - state before the action

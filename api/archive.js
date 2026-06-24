@@ -49,13 +49,21 @@ export default async function handler(req, res) {
       if (!match) return res.status(404).json({ error: 'Archive not found' });
 
       // snapshot whatever is currently live so restoring never destroys data —
-      // it gets pushed onto the archive list just like a normal reset would
+      // but skip it if live data is identical to the archive being restored
+      // (e.g. restoring right after the same data was just archived/reset)
       const currentRaw = await kv.hgetall('players');
       const currentPlayers = currentRaw
         ? Object.values(currentRaw).map(v => (typeof v === 'string' ? JSON.parse(v) : v))
         : [];
 
-      if (currentPlayers.length) {
+      const fingerprint = (list) => JSON.stringify(
+        list.map(p => ({ username: p.username, stats: p.stats })).sort((a, b) => a.username.localeCompare(b.username))
+      );
+      const isDuplicate = currentPlayers.length > 0
+        && currentPlayers.length === match.players.length
+        && fingerprint(currentPlayers) === fingerprint(match.players);
+
+      if (currentPlayers.length && !isDuplicate) {
         const preRestoreSnapshot = {
           id: `${Date.now()}`,
           season: null,
@@ -107,6 +115,35 @@ export default async function handler(req, res) {
     }
   }
 
-  res.setHeader('Allow', 'GET, POST');
+  if (req.method === 'DELETE') {
+    const { password } = req.body || {};
+    if (!ADMIN_PASS || password !== ADMIN_PASS) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+      const archives = await loadArchives(kv);
+      const match = archives.find(a => a.id === id);
+      if (!match) return res.status(404).json({ error: 'Archive not found' });
+
+      const remaining = archives.filter(a => a.id !== id);
+      await kv.del(ARCHIVE_KEY);
+      if (remaining.length) {
+        await kv.rpush(ARCHIVE_KEY, ...remaining.slice().reverse().map(a => JSON.stringify(a)));
+      }
+
+      await logAudit({
+        action: 'DELETE_ARCHIVE',
+        status: 'success',
+        target: match.season || `Archive from ${match.archivedAt}`,
+        prevValue: { playerCount: match.players.length },
+      });
+
+      return res.status(200).json({ success: true, deleted: true });
+    } catch (err) {
+      console.error('DELETE /api/archive error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, POST, DELETE');
   return res.status(405).json({ error: 'Method not allowed' });
 }

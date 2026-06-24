@@ -759,6 +759,8 @@ select.fc{
 .arc-count b{color:var(--tx);font-weight:700}
 .arc-date{font-size:10px;color:var(--mu);font-family:'JetBrains Mono',monospace}
 .arc-empty{padding:60px 20px;text-align:center;color:var(--mu);font-size:13px;grid-column:1/-1}
+.arc-del{background:var(--s3);border:1px solid var(--b);border-radius:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--mu);cursor:pointer;flex-shrink:0;transition:all .13s}
+.arc-del:hover{color:#f87171;background:var(--red-dim);border-color:var(--red-mid)}
 
 /* archive detail modal */
 .amg{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:12px;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -1218,6 +1220,7 @@ function auditActionClass(action){
   if(action==='REMOVE_PLAYER') return 'remove';
   if(action==='RESET_ALL') return 'reset';
   if(action==='RESTORE_ARCHIVE') return 'restore';
+  if(action==='DELETE_ARCHIVE') return 'remove';
   return 'edit';
 }
 function auditActionLabel(action){
@@ -1225,6 +1228,7 @@ function auditActionLabel(action){
   if(action==='REMOVE_PLAYER') return 'Remove';
   if(action==='RESET_ALL') return 'Reset All';
   if(action==='RESTORE_ARCHIVE') return 'Restore';
+  if(action==='DELETE_ARCHIVE') return 'Delete Archive';
   return action;
 }
 function fmtAuditTime(ts){
@@ -1441,8 +1445,9 @@ function renderArchiveGrid(){
   if(!archives.length){grid.innerHTML='<div class="arc-empty">No archived seasons yet. Use Admin → Reset to archive the current season before wiping.</div>';return}
   grid.innerHTML=archives.map(a=>{
     const label=a.season||`Archived ${fmtArchiveDate(a.archivedAt)}`;
+    const delBtn=isAuthed?`<button class="arc-del" data-id="${a.id}" title="Delete this archive" aria-label="Delete archive"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`:'';
     return`<div class="arc-card" data-id="${a.id}">
-      <div class="arc-hd"><span class="arc-season">${label}</span><span class="arc-badge">Archive</span></div>
+      <div class="arc-hd"><span class="arc-season">${label}</span><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="arc-badge">Archive</span>${delBtn}</div></div>
       <div class="arc-body">
         <span class="arc-count"><b>${a.playerCount}</b> player${a.playerCount!==1?'s':''}</span>
         <span class="arc-date">${fmtArchiveDate(a.archivedAt)}</span>
@@ -1451,6 +1456,25 @@ function renderArchiveGrid(){
   }).join('');
   grid.querySelectorAll('.arc-card').forEach(card=>{
     card.addEventListener('click',()=>openArchiveDetail(card.dataset.id));
+  });
+  grid.querySelectorAll('.arc-del').forEach(btn=>{
+    btn.addEventListener('click',async(e)=>{
+      e.stopPropagation();
+      const id=btn.dataset.id;
+      const a=archives.find(x=>x.id===id);
+      const label=a?(a.season||`Archived ${fmtArchiveDate(a.archivedAt)}`):'this archive';
+      if(!confirm(`Permanently delete "${label}"?\n\nThis cannot be undone — the snapshot will be gone for good.`))return;
+      try{
+        const res=await fetch(`/api/archive?id=${encodeURIComponent(id)}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
+        const json=await res.json();
+        if(!res.ok)throw new Error(json.error||'Delete failed');
+        toast(`🗑️ "${label}" deleted`,'amber',4000);
+        await loadArchives();
+        fetchAuditLogs();
+      }catch(err){
+        toast('Delete failed: '+err.message,'red',5000);
+      }
+    });
   });
 }
 let currentArchiveDetail=null;
@@ -1553,7 +1577,7 @@ modalBg.addEventListener('click',e=>{if(e.target===modalBg)closeAdmin()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAdmin();closeEditModal()}});
 document.getElementById('admin-btn').addEventListener('click',()=>{modalBg.classList.add('open');if(!isAuthed){authModal.style.display='';adminPanel.style.display='none';authPass.value='';hideAuthError();setTimeout(()=>authPass.focus(),80)}else{fetchAuditLogs();loadArchives()}});
 document.getElementById('audit-refresh-btn').addEventListener('click',fetchAuditLogs);
-function closeAdmin(){modalBg.classList.remove('open');isAuthed=false;adminPassword='';authModal.style.display='';adminPanel.style.display='none'}
+function closeAdmin(){modalBg.classList.remove('open');isAuthed=false;adminPassword='';authModal.style.display='';adminPanel.style.display='none';renderArchiveGrid()}
 
 function showPanelMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className=`panel-msg ${type} show`}
 function clearPanelMsg(id){const el=document.getElementById(id);el.className='panel-msg';el.textContent=''}
