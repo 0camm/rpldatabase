@@ -475,6 +475,7 @@ select.fc{
 .admin-section-icon.blue{background:rgba(91,156,246,.1);color:var(--bl)}
 .admin-section-icon.amber{background:rgba(245,166,35,.1);color:var(--am)}
 .admin-section-icon.red{background:rgba(232,0,29,.1);color:var(--red)}
+.admin-section-icon.green{background:rgba(24,212,100,.1);color:var(--gr)}
 .admin-section-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx)}
 .admin-section-desc{font-size:10px;color:var(--mu);margin-top:1px}
 .admin-section-body{padding:12px 14px}
@@ -1050,6 +1051,29 @@ select.fc{
         </div>
       </div>
 
+      <div class="admin-section">
+        <div class="admin-section-hd">
+          <div class="admin-section-icon green">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7a4 4 0 1 0 1.2-2.85M3 7V3.5M3 7h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="admin-section-label">Restore Archived Season</div>
+            <div class="admin-section-desc">Replaces current live stats with an archived season. The current data is auto-archived first.</div>
+          </div>
+        </div>
+        <div class="admin-section-body">
+          <div class="input-row">
+            <select class="field-input" id="restore-archive-select">
+              <option value="">Loading archives…</option>
+            </select>
+            <button class="action-btn" id="modal-restore">Restore</button>
+          </div>
+          <div class="panel-msg" id="restore-msg"></div>
+        </div>
+      </div>
+
       <!-- AUDIT LOG -->
       <div class="audit-section">
         <div class="audit-section-hd">
@@ -1390,13 +1414,24 @@ function fmtArchiveDate(ts){
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 async function loadArchives(){
-  archivesLoading=true;renderArchiveGrid();
+  archivesLoading=true;renderArchiveGrid();populateRestoreSelect();
   try{
     const res=await fetch('/api/archives',{cache:'no-store'});
     const json=await res.json();
     archives=json.archives||[];
   }catch(e){archives=[];console.error('Archive fetch error:',e)}
-  finally{archivesLoading=false;archivesLoaded=true;renderArchiveGrid()}
+  finally{archivesLoading=false;archivesLoaded=true;renderArchiveGrid();populateRestoreSelect()}
+}
+function populateRestoreSelect(){
+  const sel=document.getElementById('restore-archive-select');
+  if(!sel)return;
+  if(archivesLoading){sel.innerHTML='<option value="">Loading archives…</option>';sel.disabled=true;return}
+  if(!archives.length){sel.innerHTML='<option value="">No archived seasons yet</option>';sel.disabled=true;return}
+  sel.disabled=false;
+  sel.innerHTML=archives.map(a=>{
+    const label=a.season||`Archived ${fmtArchiveDate(a.archivedAt)}`;
+    return`<option value="${a.id}">${label} — ${a.playerCount} player${a.playerCount!==1?'s':''} (${fmtArchiveDate(a.archivedAt)})</option>`;
+  }).join('');
 }
 function renderArchiveGrid(){
   const grid=document.getElementById('archive-grid');
@@ -1508,7 +1543,7 @@ const modalBg=document.getElementById('modal-bg'),authModal=document.getElementB
 function showAuthError(msg){authErrorText.textContent=msg;authError.classList.add('show');authPass.focus()}
 function hideAuthError(){authError.classList.remove('show')}
 authEye.addEventListener('click',()=>{const isPass=authPass.type==='password';authPass.type=isPass?'text':'password';authEye.innerHTML=isPass?`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3" opacity=".4"/><path d="M2 2L16 16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`:`<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1 9C1 9 4 3.5 9 3.5S17 9 17 9s-3 5.5-8 5.5S1 9 1 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.2" stroke="currentColor" stroke-width="1.3"/></svg>`});
-async function attemptAuth(){const pass=authPass.value.trim();if(!pass){showAuthError('Please enter your password.');return}authSubmit.disabled=true;authSubmit.textContent='Verifying…';hideAuthError();try{const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass,username:'__auth_check__'})});const json=await res.json();if(res.status===401||res.status===403||json.error==='Unauthorized'){showAuthError('Incorrect password. Try again.');authPass.value=''}else{adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display='';fetchAuditLogs()}}catch(e){adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display='';fetchAuditLogs()}finally{authSubmit.disabled=false;authSubmit.textContent='Unlock Admin Panel'}}
+async function attemptAuth(){const pass=authPass.value.trim();if(!pass){showAuthError('Please enter your password.');return}authSubmit.disabled=true;authSubmit.textContent='Verifying…';hideAuthError();try{const res=await fetch('/api/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass,username:'__auth_check__'})});const json=await res.json();if(res.status===401||res.status===403||json.error==='Unauthorized'){showAuthError('Incorrect password. Try again.');authPass.value=''}else{adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display='';fetchAuditLogs();loadArchives()}}catch(e){adminPassword=pass;isAuthed=true;authModal.style.display='none';adminPanel.style.display='';fetchAuditLogs();loadArchives()}finally{authSubmit.disabled=false;authSubmit.textContent='Unlock Admin Panel'}}
 authSubmit.addEventListener('click',attemptAuth);
 authPass.addEventListener('keydown',e=>{if(e.key==='Enter')attemptAuth()});
 authPass.addEventListener('input',hideAuthError);
@@ -1516,7 +1551,7 @@ document.getElementById('auth-cancel').addEventListener('click',closeAdmin);
 document.getElementById('panel-close').addEventListener('click',closeAdmin);
 modalBg.addEventListener('click',e=>{if(e.target===modalBg)closeAdmin()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAdmin();closeEditModal()}});
-document.getElementById('admin-btn').addEventListener('click',()=>{modalBg.classList.add('open');if(!isAuthed){authModal.style.display='';adminPanel.style.display='none';authPass.value='';hideAuthError();setTimeout(()=>authPass.focus(),80)}else{fetchAuditLogs()}});
+document.getElementById('admin-btn').addEventListener('click',()=>{modalBg.classList.add('open');if(!isAuthed){authModal.style.display='';adminPanel.style.display='none';authPass.value='';hideAuthError();setTimeout(()=>authPass.focus(),80)}else{fetchAuditLogs();loadArchives()}});
 document.getElementById('audit-refresh-btn').addEventListener('click',fetchAuditLogs);
 function closeAdmin(){modalBg.classList.remove('open');isAuthed=false;adminPassword='';authModal.style.display='';adminPanel.style.display='none'}
 
@@ -1542,6 +1577,31 @@ removeBtn.addEventListener('click',async()=>{clearPanelMsg('remove-msg');const u
 
 const resetBtn=document.getElementById('modal-reset');
 resetBtn.addEventListener('click',async()=>{clearPanelMsg('reset-msg');if(!confirm('⚠️ This will archive the current season, then permanently wipe ALL player stats for a new season.\n\nAre you absolutely sure?'))return;resetBtn.disabled=true;resetBtn.textContent='Archiving & resetting…';try{const season=document.getElementById('archive-season-label').value.trim();const res=await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword,season})});const json=await res.json();if(!res.ok)throw new Error(json.error||'Failed');showPanelMsg('reset-msg',`✓ ${json.archived?'Season archived. ':''}${json.deleted} record${json.deleted!==1?'s':''} reset.`,'success');allPlayers=[];render();document.getElementById('archive-season-label').value='';toast(json.archived?'📦 Season archived — new season started':'All stats reset','amber',5000);fetchAuditLogs();loadArchives();setTimeout(closeAdmin,2500)}catch(e){showPanelMsg('reset-msg','Reset failed. Check your session.','error')}finally{resetBtn.disabled=false;resetBtn.textContent='Reset All Stats & Start New Season'}});
+
+const restorePanelBtn=document.getElementById('modal-restore');
+restorePanelBtn.addEventListener('click',async()=>{
+  clearPanelMsg('restore-msg');
+  const sel=document.getElementById('restore-archive-select');
+  const id=sel.value;
+  if(!id){showPanelMsg('restore-msg','Pick an archived season first.','error');return}
+  const label=sel.options[sel.selectedIndex].textContent;
+  if(!confirm(`Restore "${label}"?\n\nThis replaces the CURRENT live stats with this archived season. Whatever is live right now will itself be auto-archived first, so it isn't lost.`))return;
+  restorePanelBtn.disabled=true;restorePanelBtn.textContent='Restoring…';
+  try{
+    const res=await fetch(`/api/archive?id=${encodeURIComponent(id)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
+    const json=await res.json();
+    if(!res.ok)throw new Error(json.error||'Restore failed');
+    showPanelMsg('restore-msg',`✓ Restored ${json.restored} player record${json.restored!==1?'s':''}.`,'success');
+    toast('♻️ Archived season restored','green',5000);
+    await fetchData();
+    await loadArchives();
+    fetchAuditLogs();
+  }catch(e){
+    showPanelMsg('restore-msg','Restore failed: '+e.message,'error');
+  }finally{
+    restorePanelBtn.disabled=false;restorePanelBtn.textContent='Restore';
+  }
+});
 
 fetchData();
 setInterval(()=>{fetchData();if(lastUpdatedAt)setSync(lastUpdatedAt)},POLL);
