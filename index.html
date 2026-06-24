@@ -707,6 +707,7 @@ select.fc{
 .audit-action-badge.edit{background:rgba(91,156,246,.12);color:var(--bl);border:1px solid rgba(91,156,246,.25)}
 .audit-action-badge.remove{background:rgba(245,166,35,.12);color:var(--am);border:1px solid rgba(245,166,35,.25)}
 .audit-action-badge.reset{background:rgba(232,0,29,.12);color:var(--red);border:1px solid rgba(232,0,29,.25)}
+.audit-action-badge.restore{background:rgba(24,212,100,.12);color:var(--gr);border:1px solid rgba(24,212,100,.25)}
 
 .audit-status-dot{
   width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:1px;
@@ -922,13 +923,17 @@ select.fc{
         <div class="ahd-title" id="am-title">Season</div>
         <div class="ahd-sub" id="am-sub"></div>
       </div>
-      <button class="aclose" id="am-close" aria-label="Close">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button class="action-btn" id="am-restore" style="display:none">Restore This Season</button>
+        <button class="aclose" id="am-close" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="abody">
+      <div class="panel-msg" id="am-restore-msg"></div>
       <input class="afilter" id="am-filter" placeholder="Filter player…" autocomplete="off" spellcheck="false">
       <div class="aplayer-hd">
         <span>Player</span><span>GP</span><span>PPG</span><span>APG</span><span>RPG</span><span>SPG</span><span>BPG</span><span>FG%</span>
@@ -1188,12 +1193,14 @@ function auditActionClass(action){
   if(action==='EDIT_PLAYER') return 'edit';
   if(action==='REMOVE_PLAYER') return 'remove';
   if(action==='RESET_ALL') return 'reset';
+  if(action==='RESTORE_ARCHIVE') return 'restore';
   return 'edit';
 }
 function auditActionLabel(action){
   if(action==='EDIT_PLAYER') return 'Edit';
   if(action==='REMOVE_PLAYER') return 'Remove';
   if(action==='RESET_ALL') return 'Reset All';
+  if(action==='RESTORE_ARCHIVE') return 'Restore';
   return action;
 }
 function fmtAuditTime(ts){
@@ -1243,6 +1250,13 @@ function renderAuditLogs(){
       if(status==='success'){
         detail=buildStatDiff(log.prevValue,log.newValue);
         if(detail) detail=`<div class="audit-detail">Stat changes:${detail}</div>`;
+      } else {
+        detail=`<div class="audit-detail"><span class="audit-error-tag">${log.error||'Unknown error'}</span></div>`;
+      }
+    } else if(log.action==='RESTORE_ARCHIVE'){
+      if(status==='success'){
+        const cnt=log.newValue?.playerCount??'?';
+        detail=`<div class="audit-detail">Restored ${cnt} player record${cnt!==1?'s':''} from archive. Previous live data was auto-archived first.</div>`;
       } else {
         detail=`<div class="audit-detail"><span class="audit-error-tag">${log.error||'Unknown error'}</span></div>`;
       }
@@ -1411,6 +1425,10 @@ async function openArchiveDetail(id){
   document.getElementById('am-sub').textContent='';
   document.getElementById('am-list').innerHTML='<div class="arc-empty">Loading…</div>';
   document.getElementById('am-filter').value='';
+  clearPanelMsg('am-restore-msg');
+  const restoreBtn=document.getElementById('am-restore');
+  restoreBtn.style.display=isAuthed?'':'none';
+  restoreBtn.disabled=false;restoreBtn.textContent='Restore This Season';
   bg.classList.add('open');document.body.style.overflow='hidden';
   try{
     const res=await fetch(`/api/archive?id=${encodeURIComponent(id)}`,{cache:'no-store'});
@@ -1424,6 +1442,29 @@ async function openArchiveDetail(id){
   }catch(e){
     document.getElementById('am-title').textContent='Error';
     document.getElementById('am-list').innerHTML=`<div class="arc-empty">${e.message}</div>`;
+  }
+}
+async function restoreArchive(){
+  if(!currentArchiveDetail||!isAuthed)return;
+  const label=currentArchiveDetail.season||`Archived ${fmtArchiveDate(currentArchiveDetail.archivedAt)}`;
+  if(!confirm(`Restore "${label}"?\n\nThis replaces the CURRENT live stats with this archived season. Whatever is live right now will itself be auto-archived first, so it isn't lost.`))return;
+  const btn=document.getElementById('am-restore');
+  btn.disabled=true;btn.textContent='Restoring…';
+  clearPanelMsg('am-restore-msg');
+  try{
+    const res=await fetch(`/api/archive?id=${encodeURIComponent(currentArchiveDetail.id)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:adminPassword})});
+    const json=await res.json();
+    if(!res.ok)throw new Error(json.error||'Restore failed');
+    showPanelMsg('am-restore-msg',`✓ Restored ${json.restored} player record${json.restored!==1?'s':''}.`,'success');
+    toast(`♻️ "${label}" restored`,'amber',5000);
+    await fetchData();
+    await loadArchives();
+    fetchAuditLogs();
+    setTimeout(()=>{document.getElementById('archive-modal-bg').classList.remove('open');document.body.style.overflow=''},1400);
+  }catch(e){
+    showPanelMsg('am-restore-msg','Restore failed: '+e.message,'error');
+  }finally{
+    btn.disabled=false;btn.textContent='Restore This Season';
   }
 }
 function renderArchiveDetailList(){
@@ -1446,6 +1487,7 @@ function renderArchiveDetailList(){
   </div>`).join('');
 }
 document.getElementById('am-filter').addEventListener('input',()=>renderArchiveDetailList());
+document.getElementById('am-restore').addEventListener('click',restoreArchive);
 document.getElementById('am-close').addEventListener('click',()=>{document.getElementById('archive-modal-bg').classList.remove('open');document.body.style.overflow=''});
 document.getElementById('archive-modal-bg').addEventListener('click',e=>{if(e.target.id==='archive-modal-bg'){e.currentTarget.classList.remove('open');document.body.style.overflow=''}});
 
