@@ -79,6 +79,15 @@ export default async function handler(req, res) {
       }
       await kv.set('meta:updatedAt', new Date().toISOString());
 
+      // remove the restored entry from the archive list so it doesn't
+      // sit there alongside the now-live data — rebuild the list without it
+      const remaining = (await loadArchives(kv)).filter(a => a.id !== id);
+      await kv.del(ARCHIVE_KEY);
+      if (remaining.length) {
+        // lrange returned newest-first; rpush in reverse to preserve that order
+        await kv.rpush(ARCHIVE_KEY, ...remaining.slice().reverse().map(a => JSON.stringify(a)));
+      }
+
       await logAudit({
         action: 'RESTORE_ARCHIVE',
         status: 'success',
